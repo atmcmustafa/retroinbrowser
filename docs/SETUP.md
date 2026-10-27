@@ -45,7 +45,7 @@ where id = (select id from auth.users where email = '<senin-epostan>');
 3. Turnstile → Add widget (hostname: retroinbrowser.com, localhost). Site key ve secret key'i env'e yaz
    - Widget görünmüyor ve konsolda `[Cloudflare Turnstile] Error: 110200` varsa o hostname widget'ın listesinde yok: Turnstile → widget → Hostname Management'e ekle
    - Otomatik testlerde Cloudflare'in test anahtarları: site `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA` (her zaman geçer)
-4. Email Routing → `contact@retroinbrowser.com` → kendi adresin
+4. İletişim adresi `retroinbrowser@gmail.com` (`src/lib/site.ts`). Domain adresi istenirse Email Routing ile `contact@retroinbrowser.com` → bu adres yönlendirilip `contactEmail` değiştirilebilir
 
 ## 6. Vercel
 

@@ -2,13 +2,13 @@
 
 ## Servisler (hepsi ücretsiz katman)
 
-| Servis         | Rol                                 | Limitler / dikkat                                                                                              |
-| -------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Vercel Hobby   | Next.js hosting                     | Sadece ticari olmayan kullanım. 5.000 image transformation/ay, 1M function çağrısı. Cron için kullanmıyoruz    |
-| Supabase Free  | Postgres, Auth, Storage             | 500 MB DB, 1 GB storage, 5 GB egress/ay, 2 proje. **1 hafta aktivite yoksa uyur** (Faz 2 cron'u bunu engeller) |
-| Cloudflare     | DNS, Turnstile, e-posta yönlendirme | DNS kayıtları Vercel'e **DNS only** (gri bulut). `contact@retroinbrowser.com` → kişisel posta                  |
-| GitHub Actions | Günlük toplama ve link kontrolü     | Public repoda sınırsız, private'ta 2.000 dk/ay                                                                 |
-| SteamGridDB    | Kapak ve hero görselleri            | Ücretsiz API key. Footer'da kaynak belirtilir                                                                  |
+| Servis         | Rol                             | Limitler / dikkat                                                                                              |
+| -------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Vercel Hobby   | Next.js hosting                 | Sadece ticari olmayan kullanım. 5.000 image transformation/ay, 1M function çağrısı. Cron için kullanmıyoruz    |
+| Supabase Free  | Postgres, Auth, Storage         | 500 MB DB, 1 GB storage, 5 GB egress/ay, 2 proje. **1 hafta aktivite yoksa uyur** (Faz 2 cron'u bunu engeller) |
+| Cloudflare     | DNS, Turnstile                  | DNS kayıtları Vercel'e **DNS only** (gri bulut). İletişim adresi `retroinbrowser@gmail.com`                    |
+| GitHub Actions | Günlük toplama ve link kontrolü | Public repoda sınırsız, private'ta 2.000 dk/ay                                                                 |
+| SteamGridDB    | Kapak ve hero görselleri        | Ücretsiz API key. Footer'da kaynak belirtilir                                                                  |
 
 ## Veri modeli (`supabase/migrations`)
 

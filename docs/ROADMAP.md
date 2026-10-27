@@ -23,7 +23,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] Admin layout + `/admin/games` tablo ve form
 - [x] SteamGridDB kapak arama + Storage'a yükleme
 - [x] `/admin/taxonomy`
-- [ ] 15-20 oyunu elle gir (19 başlangıç oyunu taslak olarak yüklendi: `supabase/starter-games.sql`; görseller `npm run artwork` ile eklendi; kontrol edip yayına al)
+- [x] 15-20 oyunu elle gir: 16 oyun yayında. Taslakta bekleyenler: `half-life-2-web` (site 404), `need-for-speed-most-wanted-online` (erişilemiyor, giriş zorunlu, domain güvenlik taramalarında işaretli), `the-browsing-of-isaac` (site kapalı); açılınca tekrar kontrol et
 - [x] Ana sayfa
 - [x] `/games` arama ve filtreler
 - [x] `/games/[slug]` + `/go/[slug]`
@@ -32,7 +32,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] `/submit` + Turnstile + `/admin/candidates` kuyruğu
 - [x] `/about`, `/dmca`, 404
 - [x] `sitemap.ts`, `robots.ts`, OG görselleri, metadata
-- [ ] **Canlıdan önce:** iletişim adresi değişecek. Yeni mail kutusunu `src/lib/site.ts` (`contactEmail`, sitede /about, /dmca ve footer bunu kullanıyor), `docs/SETUP.md` 5.4 ve `docs/ARCHITECTURE.md` içinde güncelle
+- [x] İletişim adresi: `retroinbrowser@gmail.com` (`src/lib/site.ts` → /about, /dmca, footer)
 - [ ] Vercel + Cloudflare ile canlıya alma (`docs/SETUP.md` 5-6), sonra Cloudflare kurallarını gözden geçir
 
 ## Faz 2 — Otomasyon (detay: `docs/AUTOMATION.md`)

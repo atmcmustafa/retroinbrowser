@@ -1,5 +1,4 @@
-// Placeholder: replace with the new mailbox before launch (see docs/ROADMAP.md).
-export const contactEmail = "contact@retroinbrowser.com";
+export const contactEmail = "retroinbrowser@gmail.com";
 
 export const siteName = "RetroInBrowser";
 export const siteDescription =
