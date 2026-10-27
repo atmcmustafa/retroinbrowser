@@ -18,15 +18,15 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 
 - [x] Site layout: header, footer, mobil menü
 - [x] `GameCard`, `GameRow`, `GenreGrid`, `PlatformChips` bileşenleri
-- [ ] `lib/data/games.ts`: listeleme, filtre, arama, detay, benzerler (`"use cache"`) — ana sayfa listeleri hazır
+- [ ] `lib/data/games.ts`: listeleme, filtre, arama, detay, benzerler (`"use cache"`) — listeler, detay ve benzerler hazır; filtre/arama `/games` ile
 - [x] `/login` + `auth/callback` (e-posta; GitHub/Discord sonra)
 - [x] Admin layout + `/admin/games` tablo ve form
 - [x] SteamGridDB kapak arama + Storage'a yükleme
 - [x] `/admin/taxonomy`
-- [ ] 15-20 oyunu elle gir (19 başlangıç oyunu taslak olarak yüklendi: `supabase/starter-games.sql`; görsel seçip yayına al)
+- [ ] 15-20 oyunu elle gir (19 başlangıç oyunu taslak olarak yüklendi: `supabase/starter-games.sql`; görseller `npm run artwork` ile eklendi; kontrol edip yayına al)
 - [x] Ana sayfa
 - [ ] `/games` arama ve filtreler
-- [ ] `/games/[slug]` + `/go/[slug]`
+- [x] `/games/[slug]` + `/go/[slug]`
 - [ ] `/popular`, `/new`, `/platforms/[slug]`, `/genres/[slug]`
 - [ ] ⌘K arama paleti
 - [ ] `/submit` + Turnstile + `/admin/candidates` kuyruğu

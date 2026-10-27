@@ -2,6 +2,8 @@
 
 Faz 2'nin tasarımı. Amaç: viral bir portu aynı gün listeye almak ve kapanan/bozulan portu bir gün içinde fark etmek.
 
+> **İnceleme notu (27 Ekim):** Aşağıdaki planın iki yeri bu hedeflerle çelişiyor: günde tek keşif (bkz. 1. bölüm) ve günde tek kontrol + `fail_streak ≥ 2` (bkz. 4. bölüm). Notlar ilgili bölümlerde.
+
 ## Rakip analizi (Ekim 2026)
 
 |           | portedgames.com                                 | recompiledgames.com                              |
@@ -67,6 +69,10 @@ Kurallar:
 - Yayındaki bir oyunun `play_url`'iyle eşleşen veya `title` benzerliği (`pg_trgm similarity > 0.6`) yüksek aday `duplicate` olur.
 - X/Twitter API ücretli, kullanılmıyor. Viral olan içerik 1-2 gün içinde HN'e veya haberlere düşüyor.
 
+> **İnceleme notu — keşif sıklığı:** `collect` günde bir (06:15 UTC) çalışırsa öğlen viral olan port ertesi sabah bulunur; "aynı gün" hedefi tutmaz. `collect` + `extract` 4-6 saatte bir ayrı bir workflow'da çalışsın (public repoda Actions dakikası sorun değil), `check-links` günlük kalabilir.
+>
+> **İnceleme notu — Google News:** RSS'teki `<link>` haberin kendisi değil, `news.google.com/rss/articles/…` yönlendirme sarmalayıcısı. Haber URL'sine ulaşmak için ayrı bir çözme adımı gerekir (yönlendirmeyi takip etmek her zaman yetmiyor). Çözülemezse `source_ref` olarak sarmalayıcı saklanır, `extract` haber sayfasını açamaz; bu kaynak en son eklenmeli.
+
 ## 2. Bilgi çıkarma (`scripts/extract.ts`)
 
 - `pending` ve `extracted is null` adaylar için sayfa HTML'i (+ varsa GitHub README) alınır, metne çevrilir, 20k karakterle kırpılır.
@@ -106,6 +112,14 @@ Her `published` oyun için tek GET (timeout 15 sn, eşzamanlılık 4, User-Agent
 Parmak izi: `<title>` + ilk 2 KB görünür metnin normalize edilmiş SHA-256'sı. İlk başarılı kontrolde kaydedilir.
 
 `broken` ve `taken_down` oyunlar listeden kalkmaz; kartta durum rozetiyle gösterilir, sıralamada en sona düşer. Değişiklik olduğunda `revalidateTag("games", "max")` çağrılır (script, Vercel'de bir revalidate route'una secret ile istek atar).
+
+> **İnceleme notu — "bir gün içinde" hedefi:** Günde tek kontrol ve `fail_streak ≥ 2` ile kırık link en erken 2 günde `broken` olur. Öneri: başarısız linkler aynı çalıştırmanın sonunda ~10 dk sonra bir kez daha denensin; ikisi de başarısızsa `fail_streak` 2 sayılır. Tek seferlik ağ hatası yine `broken` yapmaz (kabul kriteri korunur).
+>
+> **İnceleme notu — parmak izi:** WebAssembly/canvas portlarında görünür metin çoğu zaman boş ya da "Loading…" olur; parmak izi ya anlamsız kalır ya da her sürümde değişir ve sahte `changed` üretir. `changed` kararı son domain + `<title>` değişimine dayansın, parmak izi sadece yardımcı sinyal olsun.
+>
+> **İnceleme notu — DMCA araması:** `DMCA` kelimesi birçok sitenin footer linkinde geçer. Aramayı `<title>`, `<h1>` ve ana metinle sınırla (nav/footer hariç) ya da 451'e öncelik ver. Admin onayı olduğu için zarar vermez ama yanlış alarm üretir.
+>
+> **İnceleme notu — kaldırmalarda önbellek:** `"max"` stale-while-revalidate demek; değişiklikten sonraki ilk ziyaretçi eski sayfayı görür. `broken`/`slow` için sorun değil, ama admin onaylı `taken_down` için route `revalidateTag("games", { expire: 0 })` kullansın (hukuki bildirimler gecikmemeli).
 
 ## 5. Haftalık smoke test (`scripts/smoke.ts`)
 
@@ -191,6 +205,10 @@ create table public.game_reports (
 
 RLS: `link_checks` ve `candidate_mentions` sadece admin okur (scriptler secret key ile yazar). `game_reports` herkes okur, kullanıcı sadece kendi adına ekler. `candidate_source` enum'una `googlenews` eklenmeli.
 
+> **İnceleme notu — enum ve mevcut kod:** `alter type … add value` ile eklenen değerler aynı transaction'da kullanılamaz; enum değerlerini ekleyen migration'da bu değerleri kullanan default/check/policy olmasın (gerekirse ikinci migration). Mevcut kod `link_status`'ün sadece `unknown/ok/broken` olduğunu varsayıyor: `getAdminStats` (kırık sayısı), admin oyun tablosundaki rozet ve ileride `GameCard`. Migration ile birlikte bunlar da güncellenmeli; `npm run db:types` sonrası typecheck eksikleri gösterir.
+>
+> **İnceleme notu — smoke görüntüleri:** `covers` bucket'ı artık sadece `image/webp` ve en fazla 2 MB kabul ediyor (migration `covers_storage`). 1280x720 WebP bu sınıra sığar; `smoke/` yolu admin'in görsel silme mantığına (`storedArtworkPath`: sadece `cover/`, `hero/`) takılmaz.
+
 ## Dosya yapısı
 
 ```
@@ -208,6 +226,8 @@ scripts/
 ```
 
 `package.json`: `"collect": "tsx scripts/collect.ts"`, `"extract": …`, `"check-links": …`, `"smoke": …`, `"test:scripts": "tsx --test scripts/**/*.test.ts"`.
+
+> **İnceleme notu — script'lerin çalıştırılması:** `src/lib`'deki server modülleri `import "server-only"` içeriyor ve düz Node'da hata veriyor. Mevcut örnek `npm run artwork` (`scripts/fill-artwork.ts`): `tsx --conditions=react-server --env-file=.env.local …` ile `server-only` boş modüle çözülür, `@/lib/steamgriddb`, `@/lib/storage` gibi modüller tekrar yazılmadan kullanılır. Supabase client'ı `scripts/lib/db.ts` (`createScriptClient`, secret key). Proje CommonJS olduğu için top-level `await` yok; `main()` kullan. Actions'ta `--env-file` yerine secret'lar env olarak verilir; `NEXT_PUBLIC_SITE_URL` ve `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` de gerekir (`env.ts` doğruluyor).
 
 ## Secret'lar (GitHub Actions + `.env.local`)
 
