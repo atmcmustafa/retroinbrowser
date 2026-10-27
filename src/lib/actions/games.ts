@@ -9,7 +9,7 @@ import { isSteamGridArtwork } from "@/lib/images";
 import { gameSchema, type GameInput } from "@/lib/schemas/game";
 import { importArtwork, removeArtwork } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/types/database";
+import { Constants, type Database, type Enums } from "@/types/database";
 
 type FieldErrors = Partial<Record<keyof GameInput, string>>;
 
@@ -153,4 +153,41 @@ export async function deleteGame(id: string): Promise<{ ok: false; message: stri
 
   updateTag("games");
   redirect("/admin/games");
+}
+
+export type BulkStatusResult = { ok: true; count: number } | { ok: false; message: string };
+
+const bulkStatusSchema = z.object({
+  ids: z.array(z.uuid()).min(1).max(500),
+  status: z.enum(Constants.public.Enums.game_status),
+});
+
+export async function setGamesStatus(
+  ids: string[],
+  status: Enums<"game_status">,
+): Promise<BulkStatusResult> {
+  await requireAdmin();
+  const parsed = bulkStatusSchema.safeParse({ ids, status });
+  if (!parsed.success) return { ok: false, message: "Select at least one game." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("games")
+    .update({ status: parsed.data.status })
+    .in("id", parsed.data.ids)
+    .select("id");
+  if (error) {
+    console.error("Bulk status update failed", error);
+    return { ok: false, message: "Couldn't update the games." };
+  }
+
+  updateTag("games");
+  return { ok: true, count: data.length };
+}
+
+// For edits made outside these actions (SQL, scripts, the Supabase dashboard).
+export async function refreshPublicCache() {
+  await requireAdmin();
+  updateTag("games");
+  updateTag("taxonomy");
 }
