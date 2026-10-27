@@ -16,7 +16,7 @@ export default async function AdminOverviewPage() {
   const tiles = [
     { label: "Published", value: stats.published, href: "/admin/games?status=published" },
     { label: "Drafts", value: stats.drafts, href: "/admin/games?status=draft" },
-    { label: "Pending candidates", value: stats.pending },
+    { label: "Pending candidates", value: stats.pending, href: "/admin/candidates" },
     { label: "Broken links", value: stats.broken },
   ];
 

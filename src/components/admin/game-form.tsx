@@ -42,22 +42,26 @@ import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
 import { Constants } from "@/types/database";
 
+type Candidate = { id: string; url: string; title: string | null };
+
 type Props = {
   game?: AdminGame;
+  // Prefills a new game from a submission; saving approves the candidate.
+  candidate?: Candidate;
   platforms: Awaited<ReturnType<typeof getPlatforms>>;
   genres: Awaited<ReturnType<typeof getGenres>>;
 };
 
 const artworkField = { cover: "cover_url", hero: "hero_url" } as const;
 
-function defaultsFor(game?: AdminGame): DefaultValues<GameInput> {
+function defaultsFor(game?: AdminGame, candidate?: Candidate): DefaultValues<GameInput> {
   return {
     title: game?.title ?? "",
     slug: game?.slug ?? "",
-    original_title: game?.original_title ?? "",
+    original_title: game?.original_title ?? candidate?.title ?? "",
     platform_id: game?.platform_id ?? undefined,
     genre_ids: game?.game_genres.map(({ genre_id }) => genre_id) ?? [],
-    play_url: game?.play_url ?? "",
+    play_url: game?.play_url ?? candidate?.url ?? "",
     source_url: game?.source_url ?? "",
     developer: game?.developer ?? "",
     summary: game?.summary ?? "",
@@ -73,7 +77,7 @@ function defaultsFor(game?: AdminGame): DefaultValues<GameInput> {
   };
 }
 
-export function GameForm({ game, platforms, genres }: Props) {
+export function GameForm({ game, candidate, platforms, genres }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [slugEdited, setSlugEdited] = useState(Boolean(game));
@@ -82,7 +86,7 @@ export function GameForm({ game, platforms, genres }: Props) {
 
   const form = useForm<GameInput>({
     resolver: zodResolver(gameSchema),
-    defaultValues: defaultsFor(game),
+    defaultValues: defaultsFor(game, candidate),
   });
   const { control } = form;
   const [slug, originalTitle, steamGridId, coverUrl, heroUrl] = useWatch({
@@ -103,7 +107,7 @@ export function GameForm({ game, platforms, genres }: Props) {
 
   const onSubmit = form.handleSubmit((values) => {
     startTransition(async () => {
-      const result = await saveGame(game?.id ?? null, values);
+      const result = await saveGame(game?.id ?? null, values, candidate?.id ?? null);
       if (!result.ok) {
         for (const [field, message] of Object.entries(result.fieldErrors ?? {})) {
           form.setError(field as keyof GameInput, { message });
