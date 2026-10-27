@@ -1,5 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { toSearchTerm } from "@/lib/search";
+import type { CatalogSort } from "@/lib/search-params";
 import { createPublicClient } from "@/lib/supabase/server";
 
 const cardColumns =
@@ -170,4 +172,72 @@ export async function getSimilarGames(
   }
 
   return similar.slice(0, limit);
+}
+
+export const CATALOG_PAGE_SIZE = 36;
+
+export type CatalogQuery = {
+  q: string;
+  genreId: number | null;
+  platformId: number | null;
+  mobile: boolean;
+  gamepad: boolean;
+  noFiles: boolean;
+  sort: CatalogSort;
+  page: number;
+};
+
+export const allGames = {
+  q: "",
+  genreId: null,
+  platformId: null,
+  mobile: false,
+  gamepad: false,
+  noFiles: false,
+} satisfies Partial<CatalogQuery>;
+
+const catalogOrder = {
+  popular: [
+    { column: "click_count", ascending: false },
+    { column: "published_at", ascending: false },
+  ],
+  new: [{ column: "published_at", ascending: false }],
+  title: [{ column: "title", ascending: true }],
+} as const;
+
+export async function searchCatalog(query: CatalogQuery) {
+  "use cache";
+  cacheCatalog();
+
+  // The inner join exists only to filter by genre; the card shape is the same either way,
+  // and supabase-js can't type a select string chosen at runtime.
+  const columns = (query.genreId ? genreCardColumns : cardColumns) as typeof cardColumns;
+  let request = createPublicClient()
+    .from("games")
+    .select(columns, { count: "exact" })
+    .eq("status", "published");
+
+  if (query.genreId) request = request.eq("game_genres.genre_id", query.genreId);
+  if (query.platformId) request = request.eq("platform_id", query.platformId);
+  if (query.mobile) request = request.eq("mobile_support", true);
+  if (query.gamepad) request = request.eq("gamepad_support", true);
+  if (query.noFiles) request = request.eq("requires_own_files", false);
+  const term = toSearchTerm(query.q);
+  if (term) {
+    request = request.or(
+      `title.ilike."%${term}%",original_title.ilike."%${term}%",developer.ilike."%${term}%"`,
+    );
+  }
+  for (const { column, ascending } of catalogOrder[query.sort]) {
+    request = request.order(column, { ascending });
+  }
+
+  const from = (query.page - 1) * CATALOG_PAGE_SIZE;
+  const { data, count, error } = await request
+    .order("title")
+    .range(from, from + CATALOG_PAGE_SIZE - 1);
+  // PostgREST answers a page past the end with "range not satisfiable" instead of an empty list.
+  if (error?.code === "PGRST103") return { games: [], total: null };
+  if (error) throw error;
+  return { games: data, total: count ?? 0 };
 }

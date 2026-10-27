@@ -3,7 +3,16 @@ import Link from "next/link";
 import { badgesFor } from "@/components/site/game-badges";
 import type { GameCardData } from "@/lib/data/games";
 
-export function GameCard({ game, rank }: { game: GameCardData; rank?: number }) {
+// Default sizes fit the 7-up rows; grids pass their own.
+export function GameCard({
+  game,
+  rank,
+  sizes = "(min-width: 1152px) 152px, (min-width: 768px) 14vw, 144px",
+}: {
+  game: GameCardData;
+  rank?: number;
+  sizes?: string;
+}) {
   const shown = badgesFor(game);
 
   return (
@@ -13,13 +22,7 @@ export function GameCard({ game, rank }: { game: GameCardData; rank?: number }) 
     >
       <div className="relative aspect-[2/3] overflow-hidden rounded-card border bg-surface transition-[translate,border-color] duration-150 group-hover:-translate-y-0.5 group-hover:border-foreground/25 motion-reduce:group-hover:translate-y-0">
         {game.cover_url ? (
-          <Image
-            src={game.cover_url}
-            alt=""
-            fill
-            sizes="(min-width: 1152px) 152px, (min-width: 768px) 14vw, 144px"
-            className="object-cover"
-          />
+          <Image src={game.cover_url} alt="" fill sizes={sizes} className="object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center p-3 text-center font-display text-sm font-extrabold text-muted-foreground [font-stretch:125%]">
             {game.title}
