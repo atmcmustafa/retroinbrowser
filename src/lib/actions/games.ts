@@ -24,8 +24,12 @@ const uniqueConstraints: Record<string, { field: keyof GameInput; message: strin
   games_play_url_key: { field: "play_url", message: "Another game already links to this URL." },
 };
 
-export async function saveGame(id: string | null, input: GameInput): Promise<SaveGameResult> {
-  await requireAdmin();
+export async function saveGame(
+  id: string | null,
+  input: GameInput,
+  candidateId: string | null = null,
+): Promise<SaveGameResult> {
+  const admin = await requireAdmin();
   if (id !== null && !idSchema.safeParse(id).success)
     return { ok: false, message: "Unknown game." };
 
@@ -97,6 +101,7 @@ export async function saveGame(id: string | null, input: GameInput): Promise<Sav
 
   const gameId = saved.data.id;
   updateTag("games");
+  if (!id && candidateId) await approveCandidate(supabase, candidateId, gameId, admin.id);
 
   if (!(await syncGenres(supabase, gameId, genre_ids))) {
     return { ok: false, message: "Game saved, but its genres couldn't be updated. Save again." };
@@ -110,6 +115,27 @@ export async function saveGame(id: string | null, input: GameInput): Promise<Sav
   }
 
   return { ok: true, id: gameId, cover_url: row.cover_url ?? "", hero_url: row.hero_url ?? "" };
+}
+
+// The game is already saved; a failed link only leaves the candidate pending, so just log it.
+async function approveCandidate(
+  supabase: SupabaseClient<Database>,
+  candidateId: string,
+  gameId: string,
+  adminId: string,
+) {
+  if (!idSchema.safeParse(candidateId).success) return;
+  const { error } = await supabase
+    .from("candidates")
+    .update({
+      status: "approved",
+      game_id: gameId,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: adminId,
+    })
+    .eq("id", candidateId)
+    .eq("status", "pending");
+  if (error) console.error("Approving candidate failed", candidateId, error);
 }
 
 async function syncGenres(supabase: SupabaseClient<Database>, gameId: string, genreIds: number[]) {

@@ -44,3 +44,10 @@ export const catalogParams = {
 
 export const loadCatalogParams = createLoader(catalogParams);
 export const serializeCatalogParams = createSerializer(catalogParams);
+
+export const adminCandidatesParams = {
+  status: parseAsStringLiteral(Constants.public.Enums.candidate_status).withDefault("pending"),
+};
+
+export const loadAdminCandidatesParams = createLoader(adminCandidatesParams);
+export const serializeAdminCandidatesParams = createSerializer(adminCandidatesParams);

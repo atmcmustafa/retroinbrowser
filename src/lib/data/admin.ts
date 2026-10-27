@@ -2,6 +2,7 @@ import "server-only";
 import { toSearchTerm } from "@/lib/search";
 import type { AdminGamesFilters } from "@/lib/search-params";
 import { createClient } from "@/lib/supabase/server";
+import { Constants, type Enums } from "@/types/database";
 
 type CountResult = { count: number | null; error: unknown };
 
@@ -106,3 +107,42 @@ export async function getAdminTaxonomy() {
 export type AdminTaxonomy = Awaited<ReturnType<typeof getAdminTaxonomy>>;
 export type AdminPlatform = AdminTaxonomy["platforms"][number];
 export type AdminGenre = AdminTaxonomy["genres"][number];
+
+export async function getAdminCandidates(status: Enums<"candidate_status">) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("candidates")
+    .select("id, url, title, source, score, note, status, created_at, game:games(id, title)")
+    .eq("status", status)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return data;
+}
+
+export type AdminCandidateRow = Awaited<ReturnType<typeof getAdminCandidates>>[number];
+
+export async function getCandidateCounts() {
+  const supabase = await createClient();
+  const statuses = Constants.public.Enums.candidate_status;
+  const results = await Promise.all(
+    statuses.map((status) =>
+      supabase.from("candidates").select("id", { count: "exact", head: true }).eq("status", status),
+    ),
+  );
+  return Object.fromEntries(statuses.map((status, i) => [status, countOf(results[i])])) as Record<
+    Enums<"candidate_status">,
+    number
+  >;
+}
+
+export async function getAdminCandidate(id: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("candidates")
+    .select("id, url, title, note, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}

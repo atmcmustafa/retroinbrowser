@@ -64,7 +64,7 @@ type Mention = {
 Kurallar:
 
 - Haberden gelen linkte port adresi yoksa haber sayfası `source_ref` olur, `url` boş bırakılmaz: haber URL'si aday olur, extract adımı asıl port linkini bulmaya çalışır.
-- URL normalize (`scripts/lib/normalize-url.ts`): küçük harf host, `www.` ve sondaki `/` kaldır, `utm_*`/`ref`/`fbclid` parametrelerini sil, `http` → `https` (sadece https çalışıyorsa).
+- URL normalize: `src/lib/normalize-url.ts` (`/submit` ile ortak, mevcut). Küçük harf host, `www.` ve sondaki `/` kaldırılır, `utm_*`/`ref`/`fbclid`/`gclid` ve hash silinir. Şema saklanır ama kopya kontrolü `urlKey()` ile şemadan bağımsızdır (aynı port http ve https olarak paylaşılıyor). `http` → `https` yükseltmesi sadece https gerçekten çalışıyorsa yapılır (script tarafı).
 - Aynı normalize URL tekrar gelirse yeni aday açılmaz, `candidate_mentions`'a satır eklenir.
 - Yayındaki bir oyunun `play_url`'iyle eşleşen veya `title` benzerliği (`pg_trgm similarity > 0.6`) yüksek aday `duplicate` olur.
 - X/Twitter API ücretli, kullanılmıyor. Viral olan içerik 1-2 gün içinde HN'e veya haberlere düşüyor.
@@ -218,7 +218,7 @@ scripts/
   check-links.ts      günlük HTTP kontrolü
   smoke.ts            haftalık Playwright kontrolü
   sources/            hackernews.ts, googlenews.ts, reddit.ts, github.ts
-  lib/                db.ts, normalize-url.ts, fingerprint.ts, classify.ts, notify.ts, score.ts
+  lib/                db.ts, revalidate.ts (mevcut), fingerprint.ts, classify.ts, notify.ts, score.ts
   *.test.ts           node:test + tsx (yeni test bağımlılığı yok)
 .github/workflows/
   daily.yml           06:15 UTC: collect → extract → check-links
