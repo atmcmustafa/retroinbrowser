@@ -1,16 +1,10 @@
-import { FolderOpenIcon, Gamepad2Icon, SmartphoneIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { badgesFor } from "@/components/site/game-badges";
 import type { GameCardData } from "@/lib/data/games";
 
-const badges = [
-  { key: "mobile_support", label: "Works on mobile", Icon: SmartphoneIcon },
-  { key: "gamepad_support", label: "Gamepad support", Icon: Gamepad2Icon },
-  { key: "requires_own_files", label: "Needs your own game files", Icon: FolderOpenIcon },
-] as const;
-
 export function GameCard({ game, rank }: { game: GameCardData; rank?: number }) {
-  const shown = badges.filter(({ key }) => game[key]);
+  const shown = badgesFor(game);
 
   return (
     <Link
