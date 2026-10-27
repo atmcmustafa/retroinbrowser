@@ -12,23 +12,29 @@ export function GameRow({
 }: {
   id: string;
   title: string;
-  href: string;
+  href?: string;
   games: GameCardData[];
   ranked?: boolean;
 }) {
+  const heading = "font-display text-2xl font-extrabold tracking-tight [font-stretch:125%]";
+
   return (
     <section aria-labelledby={id}>
-      <h2 id={id} className="mb-4">
-        <Link
-          href={href}
-          className="group inline-flex items-center gap-1 rounded-sm font-display text-2xl font-extrabold tracking-tight [font-stretch:125%]"
-        >
-          {title}
-          <ChevronRightIcon
-            aria-hidden
-            className="size-5 text-muted-foreground transition-[translate,color] duration-150 group-hover:translate-x-0.5 group-hover:text-foreground"
-          />
-        </Link>
+      <h2 id={id} className={href ? "mb-4" : `mb-4 ${heading}`}>
+        {href ? (
+          <Link
+            href={href}
+            className={`group inline-flex items-center gap-1 rounded-sm ${heading}`}
+          >
+            {title}
+            <ChevronRightIcon
+              aria-hidden
+              className="size-5 text-muted-foreground transition-[translate,color] duration-150 group-hover:translate-x-0.5 group-hover:text-foreground"
+            />
+          </Link>
+        ) : (
+          title
+        )}
       </h2>
       <ul className="-mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pt-1 pb-3 md:mx-0 md:grid md:grid-cols-7 md:overflow-visible md:px-0 md:pb-0">
         {games.map((game, index) => (

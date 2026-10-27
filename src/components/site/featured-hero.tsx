@@ -51,7 +51,7 @@ export function FeaturedHero({ games }: { games: FeaturedGame[] }) {
           )}
           <div className="mt-5 flex gap-2">
             <Button asChild size="lg">
-              <a href={`/go/${game.slug}`} target="_blank" rel="noopener">
+              <a href={`/go/${game.slug}`} target="_blank" rel="nofollow noopener">
                 Play
                 <ExternalLinkIcon data-icon="inline-end" />
               </a>
