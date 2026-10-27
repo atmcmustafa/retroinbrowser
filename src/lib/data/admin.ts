@@ -81,3 +81,36 @@ export async function getAdminGame(id: string) {
 }
 
 export type AdminGame = NonNullable<Awaited<ReturnType<typeof getAdminGame>>>;
+
+export async function getAdminTaxonomy() {
+  const supabase = await createClient();
+  const [platforms, genres] = await Promise.all([
+    supabase
+      .from("platforms")
+      .select("id, slug, name, short_name, color, sort, games(count)")
+      .order("sort")
+      .order("name"),
+    supabase
+      .from("genres")
+      .select("id, slug, name, icon, sort, game_genres(count)")
+      .order("sort")
+      .order("name"),
+  ]);
+  if (platforms.error) throw platforms.error;
+  if (genres.error) throw genres.error;
+
+  return {
+    platforms: platforms.data.map(({ games, ...platform }) => ({
+      ...platform,
+      gameCount: games[0]?.count ?? 0,
+    })),
+    genres: genres.data.map(({ game_genres, ...genre }) => ({
+      ...genre,
+      gameCount: game_genres[0]?.count ?? 0,
+    })),
+  };
+}
+
+export type AdminTaxonomy = Awaited<ReturnType<typeof getAdminTaxonomy>>;
+export type AdminPlatform = AdminTaxonomy["platforms"][number];
+export type AdminGenre = AdminTaxonomy["genres"][number];
