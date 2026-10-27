@@ -11,7 +11,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] shadcn bileşenleri: `button input textarea label badge dialog command dropdown-menu sheet select checkbox switch table tabs skeleton sonner carousel tooltip avatar separator field`
 - [x] Paketler: `npm i @tanstack/react-table @marsidev/react-turnstile sharp`
 - [x] `docs/SETUP.md` adım 1-2 (Supabase link, migration, seed, `covers` bucket)
-- [ ] Admin rolü (`docs/SETUP.md` adım 4): `/login` bittikten sonra
+- [x] Admin rolü (`docs/SETUP.md` adım 4)
 - [ ] GitHub ve Discord OAuth (`docs/SETUP.md` adım 3): sonraya bırakıldı, şimdilik e-posta
 
 ## Faz 1 — MVP
@@ -19,7 +19,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [ ] Site layout: header, footer, mobil menü
 - [ ] `GameCard`, `GameRow`, `GenreGrid`, `PlatformChips` bileşenleri
 - [ ] `lib/data/games.ts`: listeleme, filtre, arama, detay, benzerler (`"use cache"`)
-- [ ] `/login` + `auth/callback` (e-posta; GitHub/Discord sonra)
+- [x] `/login` + `auth/callback` (e-posta; GitHub/Discord sonra)
 - [ ] Admin layout + `/admin/games` tablo ve form
 - [ ] SteamGridDB kapak arama + Storage'a yükleme
 - [ ] `/admin/taxonomy`
@@ -43,6 +43,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 
 ## Faz 3 — Topluluk
 
+- [ ] Herkese açık giriş: Supabase'e custom SMTP, Attack Protection'da CAPTCHA (Turnstile) ve `/login` formuna token
 - [ ] Yorumlar
 - [ ] Puanlama
 - [ ] Mobil uyumluluk raporları
