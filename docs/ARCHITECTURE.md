@@ -32,7 +32,13 @@ Admin kapak seçtiğinde sunucu tarafında `sharp` ile WebP'ye çevrilir (kapak 
 
 ## Önbellek
 
-`cacheComponents` açık. Herkese açık veriler `"use cache"` + `cacheTag("games" | "taxonomy")` ile önbelleklenir. Cache içinde `cookies()` okunamadığı için bu okumalar `createPublicClient()` (anon, cookie'siz) kullanır. Admin server action'ları değişiklikten sonra `updateTag` çağırır; route handler ve script'ler `revalidateTag(tag, "max")`.
+`cacheComponents` açık. Herkese açık veriler `"use cache"` + `cacheTag("games" | "taxonomy")` ile önbelleklenir. Cache içinde `cookies()` okunamadığı için bu okumalar `createPublicClient()` (anon, cookie'siz) kullanır. Admin server action'ları değişiklikten sonra `updateTag` çağırır.
+
+**Admin dışı değişiklikler önbelleği temizlemez.** SQL Editor, Supabase paneli veya `scripts/` ile yapılan bir değişiklik, önbellek süresi (1 saat) dolana kadar sitede görünmez. Belirtisi: "admin'de var, sitede yok". Çözüm:
+
+- Script'ler bitince `scripts/lib/revalidate.ts` → `POST /api/revalidate` (`Authorization: Bearer $REVALIDATE_SECRET`) çağırır; route `games` ve `taxonomy` etiketlerini `{ expire: 0 }` ile düşürür.
+- Elle SQL/panel düzenlemesinden sonra: admin özetinde **Refresh site** düğmesi.
+- Sadece `published` oyunlar herkese açık. Admin özeti taslak sayısını uyarır; `/admin/games`'te toplu Publish/Draft/Hide var.
 
 Oturum okuyan her şey `<Suspense>` içinde olmalı. `partialPrefetching` açık olduğu için cookie'ler prerender sırasında okunabiliyor; supabase-js ise her çağrıda `Date.now()` ile token süresine bakıyor. Bu yüzden `createClient()` önce `await connection()` çağırır. Sayfalar arası geçişte layout'taki Suspense devreye girmez. İstek anında veri okuyan her sayfanın **kendi klasöründe** `loading.tsx` olmalı (ya da sayfa içinde `<Suspense>`); üst klasördeki `loading.tsx` alt sayfaları kapsamaz. `usePathname` kullanan admin menüsü ayrıca Suspense'e sarılı, çünkü `/admin/games/[id]` dinamik parametreli.
 

@@ -1,7 +1,8 @@
-import { PlusIcon } from "lucide-react";
+import { EyeOffIcon, PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/page-header";
+import { RefreshCacheButton } from "@/components/admin/refresh-cache-button";
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminStats } from "@/lib/data/admin";
@@ -24,14 +25,33 @@ export default async function AdminOverviewPage() {
       <AdminPageHeader
         title="Overview"
         actions={
-          <Button asChild>
-            <Link href="/admin/games/new">
-              <PlusIcon data-icon="inline-start" />
-              New game
-            </Link>
-          </Button>
+          <>
+            <RefreshCacheButton />
+            <Button asChild>
+              <Link href="/admin/games/new">
+                <PlusIcon data-icon="inline-start" />
+                New game
+              </Link>
+            </Button>
+          </>
         }
       />
+
+      {stats.drafts > 0 && (
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-surface p-4">
+          <p className="flex items-center gap-2.5 text-sm">
+            <EyeOffIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+            <span>
+              {stats.drafts} {stats.drafts === 1 ? "draft is" : "drafts are"} hidden from the site.
+              {stats.published === 0 && " Nothing is published yet, so the site looks empty."}
+            </span>
+          </p>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/admin/games?status=draft">Review and publish</Link>
+          </Button>
+        </div>
+      )}
+
       <dl className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {tiles.map(({ label, value, href }) => (
           <div

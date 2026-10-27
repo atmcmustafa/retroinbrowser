@@ -48,7 +48,7 @@ where id = (select id from auth.users where email = '<senin-epostan>');
 ## 6. Vercel
 
 1. GitHub'a push et, Vercel → Import project
-2. Environment Variables: `.env.local`'daki her şey, `NEXT_PUBLIC_SITE_URL=https://retroinbrowser.com`
+2. Environment Variables: `.env.local`'daki her şey, `NEXT_PUBLIC_SITE_URL=https://retroinbrowser.com`. `REVALIDATE_SECRET` için canlıda yeni bir değer üret (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`); script'ler canlıyı yenilerken bunu kullanır
 3. Domains → retroinbrowser.com ekle. Vercel'in verdiği A/CNAME kayıtlarını Cloudflare DNS'e **DNS only** (gri bulut) olarak gir
 
 ## 7. SteamGridDB

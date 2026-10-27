@@ -5,6 +5,7 @@ import type { Artwork, ArtworkGame } from "@/lib/images";
 import { getSteamGridArtwork, searchSteamGridGames } from "@/lib/steamgriddb";
 import { importArtwork, removeArtwork } from "@/lib/storage";
 import { createScriptClient } from "./lib/db";
+import { revalidateSite } from "./lib/revalidate";
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
@@ -107,9 +108,7 @@ async function main() {
   }
 
   if (dryRun) console.log("\nDry run: nothing was uploaded or saved.");
-  if (publishedChanged) {
-    console.log("\nPublished games changed. Save any game in /admin to refresh the public cache.");
-  }
+  if (publishedChanged) await revalidateSite();
   if (failures) process.exitCode = 1;
 }
 
