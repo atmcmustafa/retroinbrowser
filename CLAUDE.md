@@ -10,6 +10,7 @@ Tarayıcıya portlanmış klasik oyunların dizini. Oyun barındırmaz, port sit
 - `docs/ROADMAP.md` — sıradaki iş; bitirdiğin maddeyi `[x]` yap
 - `docs/DESIGN.md` — UI kuralları (UI işi öncesi zorunlu)
 - `docs/ARCHITECTURE.md` — servisler, veri modeli, güvenlik
+- [`docs/AUTOMATION.md`](docs/AUTOMATION.md) — keşif, link kontrolü, viral skor, rakip analizi (Faz 2 işi öncesi zorunlu)
 
 ## Stack
 
@@ -41,6 +42,10 @@ Bir işi bitirmeden önce `typecheck` ve `lint` temiz olmalı.
 - Şema değişikliği sadece yeni migration dosyasıyla; eski migration'ı düzenleme. Sonra `npm run db:types`.
 - Supabase tipleri `src/types/database.ts`'ten; elle tip kopyalama.
 - Env değişkenlerine `src/lib/env.ts` / `env.server.ts` üzerinden eriş.
+
+## Subagent kullanımı
+
+Gerektiğinde subagent kullan: bağımsız paralel işler, web araştırması, geniş kod araması ve migration/RLS gibi kritik değişikliklerin kodu yazmamış bir agent tarafından incelenmesi. Tek dosyalık işlerde kullanma. Ayrıntı: `docs/AUTOMATION.md` son bölüm.
 
 ## UI kuralları (özet, detay DESIGN.md)
 

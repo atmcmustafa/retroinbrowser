@@ -16,15 +16,15 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 
 ## Faz 1 — MVP
 
-- [ ] Site layout: header, footer, mobil menü
-- [ ] `GameCard`, `GameRow`, `GenreGrid`, `PlatformChips` bileşenleri
-- [ ] `lib/data/games.ts`: listeleme, filtre, arama, detay, benzerler (`"use cache"`)
+- [x] Site layout: header, footer, mobil menü
+- [x] `GameCard`, `GameRow`, `GenreGrid`, `PlatformChips` bileşenleri
+- [ ] `lib/data/games.ts`: listeleme, filtre, arama, detay, benzerler (`"use cache"`) — ana sayfa listeleri hazır
 - [x] `/login` + `auth/callback` (e-posta; GitHub/Discord sonra)
 - [x] Admin layout + `/admin/games` tablo ve form
 - [x] SteamGridDB kapak arama + Storage'a yükleme
-- [ ] `/admin/taxonomy`
-- [ ] 15-20 oyunu elle gir
-- [ ] Ana sayfa
+- [x] `/admin/taxonomy`
+- [ ] 15-20 oyunu elle gir (19 başlangıç oyunu taslak olarak yüklendi: `supabase/starter-games.sql`; görsel seçip yayına al)
+- [x] Ana sayfa
 - [ ] `/games` arama ve filtreler
 - [ ] `/games/[slug]` + `/go/[slug]`
 - [ ] `/popular`, `/new`, `/platforms/[slug]`, `/genres/[slug]`
@@ -34,16 +34,25 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [ ] `sitemap.ts`, `robots.ts`, OG görselleri, metadata
 - [ ] Vercel + Cloudflare ile canlıya alma (`docs/SETUP.md` 5-6), sonra Cloudflare kurallarını gözden geçir
 
-## Faz 2 — Otomasyon
+## Faz 2 — Otomasyon (detay: `docs/AUTOMATION.md`)
 
-- [ ] `scripts/collect.ts` (HN Algolia, Reddit, GitHub)
-- [ ] `scripts/check-links.ts`
-- [ ] `.github/workflows/daily.yml` (cron, secret'lar)
-- [ ] Admin özetinde kırık link listesi
+- [ ] Migration: `link_status` yeni değerleri, `games` kontrol alanları, `link_checks`, `candidate_mentions`, `candidates.extracted`, `candidate_source += googlenews` + RLS (bağımsız agent incelemesi)
+- [ ] `scripts/lib`: `normalize-url`, `fingerprint`, `classify`, `score`, `notify`, `db` + birim testleri
+- [ ] Kaynaklar: `hackernews`, `googlenews`, `reddit`, `github` (paralel subagent'larla yapılabilir)
+- [ ] `scripts/collect.ts`: mention yazma, kopya/duplicate tespiti
+- [ ] `scripts/extract.ts`: LLM ile alan çıkarma, düşük güvenli olmayanları otomatik reddetme
+- [ ] Viral skor + Discord webhook bildirimi
+- [ ] `scripts/check-links.ts`: karar tablosu, `fail_streak`, revalidate route
+- [ ] `/admin/candidates` formunun `extracted` ile dolu açılması
+- [ ] Admin özeti: kırık, `changed` ve `taken_down` onayı bekleyenler
+- [ ] `.github/workflows/daily.yml` + secret'lar
+- [ ] `scripts/smoke.ts` + `weekly-smoke.yml`, admin'de son ekran görüntüsü
+- [ ] Ana sayfada Trending satırı (`trend_score` + 7 günlük tıklama)
 
 ## Faz 3 — Topluluk
 
 - [ ] Herkese açık giriş: Supabase'e custom SMTP, Attack Protection'da CAPTCHA (Turnstile) ve `/login` formuna token
 - [ ] Yorumlar
 - [ ] Puanlama
-- [ ] Mobil uyumluluk raporları
+- [ ] "Works for me" raporları (`game_reports`) ve kartta cihaz bazlı özet
+- [ ] `/takedowns` sayfası (`link_checks` geçmişinden)
