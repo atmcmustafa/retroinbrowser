@@ -3,6 +3,7 @@ import { Archivo, Inter } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { env } from "@/lib/env";
+import { baseOpenGraph, siteDescription, siteName } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-inter" });
@@ -14,11 +15,14 @@ const archivo = Archivo({
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
+  applicationName: siteName,
   title: {
     default: "RetroInBrowser — Classic games ported to the web",
     template: "%s · RetroInBrowser",
   },
-  description: "A curated directory of classic games ported to run in your browser.",
+  description: siteDescription,
+  openGraph: baseOpenGraph,
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -31,7 +31,8 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] ⌘K arama paleti
 - [x] `/submit` + Turnstile + `/admin/candidates` kuyruğu
 - [x] `/about`, `/dmca`, 404
-- [ ] `sitemap.ts`, `robots.ts`, OG görselleri, metadata
+- [x] `sitemap.ts`, `robots.ts`, OG görselleri, metadata
+- [ ] **Canlıdan önce:** iletişim adresi değişecek. Yeni mail kutusunu `src/lib/site.ts` (`contactEmail`, sitede /about, /dmca ve footer bunu kullanıyor), `docs/SETUP.md` 5.4 ve `docs/ARCHITECTURE.md` içinde güncelle
 - [ ] Vercel + Cloudflare ile canlıya alma (`docs/SETUP.md` 5-6), sonra Cloudflare kurallarını gözden geçir
 
 ## Faz 2 — Otomasyon (detay: `docs/AUTOMATION.md`)

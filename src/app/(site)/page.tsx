@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { FeaturedHero } from "@/components/site/featured-hero";
+import { JsonLd } from "@/components/site/json-ld";
 import { GameRow } from "@/components/site/game-row";
 import { GenreGrid } from "@/components/site/genre-grid";
 import { InfoBox } from "@/components/site/info-box";
@@ -12,8 +14,28 @@ import {
   getPopularGames,
 } from "@/lib/data/games";
 import { getGenres, getPlatforms } from "@/lib/data/taxonomy";
+import { env } from "@/lib/env";
+import { siteName } from "@/lib/site";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const ROW_SIZE = 7;
+
+// Lets search engines offer a search box that lands on /games.
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: siteName,
+  url: env.NEXT_PUBLIC_SITE_URL,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${new URL("/games", env.NEXT_PUBLIC_SITE_URL).href}?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
 
 export default async function HomePage() {
   const [featured, popular, newest, counts, genres, platforms] = await Promise.all([
@@ -40,6 +62,7 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-14 px-4 py-10 sm:py-14">
+      <JsonLd data={websiteJsonLd} />
       <PageHeading
         title="Classic games, in your browser."
         description="A directory of classic games ported to the web, linking straight to each port."

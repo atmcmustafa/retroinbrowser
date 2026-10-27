@@ -67,3 +67,11 @@ src/
 scripts/             collect.ts, check-links.ts (Faz 2)
 supabase/            migrations/, seed.sql, config.toml
 ```
+
+## SEO
+
+- `src/app/sitemap.ts` (yayındaki oyunlar + içi dolu tür/platform sayfaları), `robots.ts` (`/admin`, `/api/`, `/go/`, `/login`, `/auth/` kapalı). İkisi de önbellekli veriden üretilir, `games` etiketiyle yenilenir.
+- OG görselleri: kök `opengraph-image.tsx` (marka kartı) ve `games/[slug]/opengraph-image.tsx` (hero + kapak + başlık). Satori statik TTF ister: `assets/fonts/` (Latin alt küme), `next.config.ts` `outputFileTracingIncludes` ile pakete girer. WebP kapaklar `sharp` ile JPEG'e çevrilip verilir.
+- Sayfa `openGraph` tanımlarsa kökteki obje birleşmez, yerine geçer: `baseOpenGraph`'ı (`src/lib/site.ts`) yay. Tanımlamayan sayfalar başlık/açıklamayı Next'ten otomatik alır.
+- JSON-LD: ana sayfada `WebSite` + `SearchAction`, oyun sayfasında `VideoGame` (`isBasedOn` orijinal oyun). `<JsonLd>` `<` karakterini kaçışlar.
+- İkonlar `scripts/generate-icons.ts` ile logodan üretilir (`icon.svg`, `favicon.ico`, `apple-icon.png`); logo değişirse tekrar çalıştır.
