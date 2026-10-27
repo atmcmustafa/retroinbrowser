@@ -258,3 +258,17 @@ export async function getSearchIndex() {
 }
 
 export type SearchEntry = Awaited<ReturnType<typeof getSearchIndex>>[number];
+
+export async function getSitemapGames() {
+  "use cache";
+  cacheCatalog();
+
+  const { data, error } = await createPublicClient()
+    .from("games")
+    .select("slug, updated_at")
+    .eq("status", "published")
+    .order("updated_at", { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return data;
+}

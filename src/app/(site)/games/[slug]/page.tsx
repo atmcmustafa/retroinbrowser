@@ -8,9 +8,12 @@ import { Suspense } from "react";
 import { badgesFor } from "@/components/site/game-badges";
 import { GameRow } from "@/components/site/game-row";
 import { InfoBox } from "@/components/site/info-box";
+import { JsonLd } from "@/components/site/json-ld";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getGameBySlug, getPublishedSlugs, getSimilarGames } from "@/lib/data/games";
+import { env } from "@/lib/env";
+import { baseOpenGraph } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
@@ -26,10 +29,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const game = await getGameBySlug(slug);
   if (!game) return { title: "Game not found" };
 
+  const title = `${game.original_title} in your browser: ${game.title}`;
+  const description =
+    game.summary ?? `Play ${game.original_title} in your browser with ${game.title}.`;
   return {
-    title: `${game.original_title} in your browser: ${game.title}`,
-    description: game.summary ?? `Play ${game.original_title} in your browser with ${game.title}.`,
+    title,
+    description,
     alternates: { canonical: `/games/${game.slug}` },
+    openGraph: { ...baseOpenGraph, title, description, url: `/games/${game.slug}` },
   };
 }
 
@@ -57,6 +64,25 @@ async function GameDetail({ params }: { params: Params }) {
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "VideoGame",
+          name: game.title,
+          url: new URL(`/games/${game.slug}`, env.NEXT_PUBLIC_SITE_URL).href,
+          sameAs: game.play_url,
+          description: game.summary ?? undefined,
+          image: game.cover_url ?? undefined,
+          genre: game.genres.map(({ name }) => name),
+          gamePlatform: "Web browser",
+          applicationCategory: "Game",
+          isBasedOn: {
+            "@type": "VideoGame",
+            name: game.original_title,
+            gamePlatform: game.platform?.name,
+          },
+        }}
+      />
       {game.hero_url && (
         <div className="relative aspect-[16/7] overflow-hidden rounded-xl border bg-surface sm:aspect-[1920/620]">
           <Image
