@@ -28,7 +28,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] `/games` arama ve filtreler
 - [x] `/games/[slug]` + `/go/[slug]`
 - [x] `/popular`, `/new`, `/platforms/[slug]`, `/genres/[slug]`
-- [ ] ⌘K arama paleti
+- [x] ⌘K arama paleti
 - [ ] `/submit` + Turnstile + `/admin/candidates` kuyruğu
 - [ ] `/about`, `/dmca`, 404
 - [ ] `sitemap.ts`, `robots.ts`, OG görselleri, metadata

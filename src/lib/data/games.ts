@@ -241,3 +241,20 @@ export async function searchCatalog(query: CatalogQuery) {
   if (error) throw error;
   return { games: data, total: count ?? 0 };
 }
+
+export async function getSearchIndex() {
+  "use cache";
+  cacheCatalog();
+
+  const { data, error } = await createPublicClient()
+    .from("games")
+    .select("slug, title, original_title, cover_url, platform:platforms(name)")
+    .eq("status", "published")
+    .order("click_count", { ascending: false })
+    .order("title")
+    .limit(2000);
+  if (error) throw error;
+  return data.map(({ platform, ...game }) => ({ ...game, platform: platform?.name ?? null }));
+}
+
+export type SearchEntry = Awaited<ReturnType<typeof getSearchIndex>>[number];
