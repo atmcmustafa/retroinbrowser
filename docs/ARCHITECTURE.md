@@ -32,7 +32,9 @@ Admin kapak seçtiğinde sunucu tarafında `sharp` ile WebP'ye çevrilir (kapak 
 
 ## Önbellek
 
-`cacheComponents` açık. Herkese açık veriler `"use cache"` + `cacheTag("games")` ile önbelleklenir; admin değişikliklerinden sonra `revalidateTag` çağrılır.
+`cacheComponents` açık. Herkese açık veriler `"use cache"` + `cacheTag("games" | "taxonomy")` ile önbelleklenir. Cache içinde `cookies()` okunamadığı için bu okumalar `createPublicClient()` (anon, cookie'siz) kullanır. Admin server action'ları değişiklikten sonra `updateTag` çağırır; route handler ve script'ler `revalidateTag(tag, "max")`.
+
+Oturum okuyan her şey `<Suspense>` içinde olmalı. `partialPrefetching` açık olduğu için cookie'ler prerender sırasında okunabiliyor; supabase-js ise her çağrıda `Date.now()` ile token süresine bakıyor. Bu yüzden `createClient()` önce `await connection()` çağırır. Sayfalar arası geçişte layout'taki Suspense devreye girmez; her segmentin kendi `loading.tsx`'i olmalı (`admin/`, `admin/games/`). `usePathname` kullanan admin menüsü ayrıca Suspense'e sarılı, çünkü `/admin/games/[id]` dinamik parametreli.
 
 ## Klasör yapısı
 
@@ -49,8 +51,11 @@ src/
     admin/
   lib/
     supabase/        client.ts, server.ts, proxy.ts
-    data/            okuma fonksiyonları (games.ts, taxonomy.ts)
+    data/            okuma fonksiyonları (games.ts, taxonomy.ts, admin.ts)
     actions/         server action'lar
+    schemas/         client form ve server action'ın paylaştığı zod şemaları
+    search-params.ts nuqs parser'ları (URL durumu, server ve client ortak)
+    images.ts        görsel URL kuralları (paylaşılan); storage.ts, steamgriddb.ts sadece server
     auth.ts, env.ts, env.server.ts
   types/database.ts  supabase gen types çıktısı
 scripts/             collect.ts, check-links.ts (Faz 2)

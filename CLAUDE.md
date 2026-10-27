@@ -36,7 +36,7 @@ Bir işi bitirmeden önce `typecheck` ve `lint` temiz olmalı.
 - Okuma: `src/lib/data/*`. Yazma: `src/lib/actions/*` server action'ları. Her action girdiyi zod ile doğrular.
 - Admin action ve sayfaları `requireAdmin()` ile başlar; `proxy.ts` tek başına yeterli sayılmaz.
 - `createAdminClient()` RLS'i aşar: sadece `/submit` (Turnstile sonrası) ve `scripts/` içinde.
-- Herkese açık veri `"use cache"` + `cacheTag`; admin değişikliğinden sonra `revalidateTag`.
+- Herkese açık veri `"use cache"` + `cacheTag`; admin değişikliğinden sonra server action'da `updateTag`, route handler/script'te `revalidateTag(tag, "max")`.
 - Filtre/arama durumu URL'de (nuqs), local state'te değil.
 - Şema değişikliği sadece yeni migration dosyasıyla; eski migration'ı düzenleme. Sonra `npm run db:types`.
 - Supabase tipleri `src/types/database.ts`'ten; elle tip kopyalama.

@@ -20,8 +20,8 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [ ] `GameCard`, `GameRow`, `GenreGrid`, `PlatformChips` bileşenleri
 - [ ] `lib/data/games.ts`: listeleme, filtre, arama, detay, benzerler (`"use cache"`)
 - [x] `/login` + `auth/callback` (e-posta; GitHub/Discord sonra)
-- [ ] Admin layout + `/admin/games` tablo ve form
-- [ ] SteamGridDB kapak arama + Storage'a yükleme
+- [x] Admin layout + `/admin/games` tablo ve form
+- [x] SteamGridDB kapak arama + Storage'a yükleme
 - [ ] `/admin/taxonomy`
 - [ ] 15-20 oyunu elle gir
 - [ ] Ana sayfa
