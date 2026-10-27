@@ -1,4 +1,5 @@
 import "server-only";
+import { toSearchTerm } from "@/lib/search";
 import type { AdminGamesFilters } from "@/lib/search-params";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,15 +38,6 @@ const sortColumns = {
   clicks: { column: "click_count", ascending: false },
 } as const;
 
-// PostgREST's or() syntax treats , ( ) " \ as structure, so keep only characters titles need.
-function searchTerm(q: string) {
-  return q
-    .replace(/[^\p{L}\p{N}\s\-'!&.:]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 100);
-}
-
 export async function getAdminGames({ q, status, sort }: AdminGamesFilters) {
   const supabase = await createClient();
   let query = supabase
@@ -56,7 +48,7 @@ export async function getAdminGames({ q, status, sort }: AdminGamesFilters) {
     .limit(500);
 
   if (status) query = query.eq("status", status);
-  const term = searchTerm(q);
+  const term = toSearchTerm(q);
   if (term) query = query.or(`title.ilike."%${term}%",original_title.ilike."%${term}%"`);
 
   const { column, ascending } = sortColumns[sort];

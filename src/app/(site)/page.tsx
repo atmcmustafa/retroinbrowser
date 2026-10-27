@@ -2,6 +2,7 @@ import { FeaturedHero } from "@/components/site/featured-hero";
 import { GameRow } from "@/components/site/game-row";
 import { GenreGrid } from "@/components/site/genre-grid";
 import { InfoBox } from "@/components/site/info-box";
+import { PageHeading } from "@/components/site/page-heading";
 import { PlatformChips } from "@/components/site/platform-chips";
 import {
   getCatalogCounts,
@@ -39,14 +40,10 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-14 px-4 py-10 sm:py-14">
-      <div>
-        <h1 className="font-display text-4xl leading-[1.05] font-extrabold tracking-tight text-balance [font-stretch:125%] sm:text-[3.5rem]">
-          Classic games, in your browser.
-        </h1>
-        <p className="mt-3 max-w-xl text-muted-foreground">
-          A directory of classic games ported to the web, linking straight to each port.
-        </p>
-      </div>
+      <PageHeading
+        title="Classic games, in your browser."
+        description="A directory of classic games ported to the web, linking straight to each port."
+      />
 
       {featured.length > 0 && <FeaturedHero games={featured} />}
 
