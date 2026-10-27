@@ -30,7 +30,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] `/popular`, `/new`, `/platforms/[slug]`, `/genres/[slug]`
 - [x] ⌘K arama paleti
 - [x] `/submit` + Turnstile + `/admin/candidates` kuyruğu
-- [ ] `/about`, `/dmca`, 404
+- [x] `/about`, `/dmca`, 404
 - [ ] `sitemap.ts`, `robots.ts`, OG görselleri, metadata
 - [ ] Vercel + Cloudflare ile canlıya alma (`docs/SETUP.md` 5-6), sonra Cloudflare kurallarını gözden geçir
 

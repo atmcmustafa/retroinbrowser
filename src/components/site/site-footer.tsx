@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
 import { siteLinks } from "@/components/site/links";
+import { contactEmail } from "@/lib/site";
 
 const projectLinks = [
   { href: "/submit", label: "Submit a game" },
   { href: "/about", label: "About" },
   { href: "/dmca", label: "DMCA" },
+  { href: `mailto:${contactEmail}`, label: "Contact" },
 ];
 
 export function SiteFooter() {
