@@ -24,9 +24,9 @@ export default function SubmitPage() {
             Ports, remakes and recompilations of classic games that run in a browser tab. We check
             every link by hand before it goes up.
           </InfoBox>
-          <InfoBox label="No game files">
-            We don&apos;t list sites that host ROMs or game files. Ports that ask for your own copy
-            are fine.
+          <InfoBox label="No ROM sites">
+            We list ports that run in a browser tab, not ROM or download sites. Ports that ask for
+            your own copy are fine.
           </InfoBox>
         </aside>
       </div>
