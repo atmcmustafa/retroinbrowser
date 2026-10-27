@@ -16,6 +16,7 @@ type ApiArtwork = {
   thumb: string;
   width: number;
   height: number;
+  score?: number;
   author?: { name?: string };
 };
 
@@ -29,7 +30,14 @@ async function request<T>(path: string): Promise<T> {
   });
   if (!res.ok) throw new Error(`SteamGridDB responded ${res.status}`);
 
-  const body = (await res.json()) as { success: boolean; data: T };
+  // During outages the API answers 200 with an empty HTML body.
+  const text = await res.text();
+  let body: { success: boolean; data: T };
+  try {
+    body = JSON.parse(text);
+  } catch {
+    throw new Error(`SteamGridDB returned no JSON (${res.status}, ${text.length} bytes)`);
+  }
   if (!body.success) throw new Error("SteamGridDB request failed");
   return body.data;
 }
@@ -61,6 +69,7 @@ export async function getSteamGridArtwork(gameId: number, kind: ArtworkKind): Pr
       thumb: item.thumb,
       width: item.width,
       height: item.height,
+      score: item.score ?? 0,
       author: item.author?.name ?? null,
     }));
 }

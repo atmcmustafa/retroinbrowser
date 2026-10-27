@@ -8,6 +8,7 @@ export type Artwork = {
   thumb: string;
   width: number;
   height: number;
+  score: number;
   author: string | null;
 };
 
