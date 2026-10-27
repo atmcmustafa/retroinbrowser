@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts && prettier --write src/types/database.ts",
     "db:push": "supabase db push",
-    "db:new": "supabase migration new"
+    "db:new": "supabase migration new",
+    "artwork": "tsx --conditions=react-server --env-file=.env.local scripts/fill-artwork.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.1",
