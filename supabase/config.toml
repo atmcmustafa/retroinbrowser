@@ -221,7 +221,7 @@ web3 = 30
 # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
 # Same Turnstile widget as /submit; the /login email form sends its token.
 [auth.captcha]
-enabled = false
+enabled = true
 provider = "turnstile"
 # The production widget's secret; .env.local's TURNSTILE_SECRET_KEY is the test key.
 secret = "env(SUPABASE_AUTH_CAPTCHA_SECRET)"
