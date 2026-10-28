@@ -14,7 +14,7 @@ Keşif, bilgi çıkarma ve link kontrolü yazıldı; plandan farkları:
 - Haber ya da yazı belirli bir port hakkındaysa `is_port` true sayılır (önceden "haber, port değil" diye otomatik reddediliyordu; Cricket 07 ve Dragon Ball Z böyle kaçtı). Link yoksa ikinci geçiş: Gemini makaleyi URL context ile kendisi okur (Google çeker, botumuzu engelleyen siteler de açılır), port linkini bulursa canlı mı diye bakılır, aday o adrese taşınıp aynı çalıştırmada yeniden çıkarılır. Makale portun kaldırıldığını söylüyorsa (`available: false`) aday otomatik reddedilir. Google Search grounding bu ücretsiz anahtarda "quota exceeded" veriyor; linki vermeyen haberler (IGN gibi) admin'e kalır.
 - `extract` açıklama taslağı da yazar ve SteamGridDB'den kapak/hero seçer: sonuç adında başlığın her kelimesi olmalı ("Mu Online" için "M.U.L.E. Online" gelmesin), orijinal çıkış yılına uyan tercih edilir. Platform listede yoksa (Mac, PS3) `other`. Haber ya da repo üzerinden gelen aday, bulunan port URL'sine taşınır; o URL'de oyun ya da başka aday varsa `duplicate` olur, mention'ları oraya geçer.
 - `check-links`: herkese açık satıra (anon `games`'in her sütununu okuyabiliyor) sadece `ok`/`broken` yazılır; `slow`, `changed`, `taken_down` `link_checks.verdict`'te kalır, admin tablosu son kontrolü rozet olarak gösterir. Başarısız linkler 5 dk sonra tekrar denenir, ikisi de başarısızsa aynı gün `broken`. Bot doğrulama sayfası (Cloudflare) `unknown` sayılır, karar verilmez.
-- Henüz yok: haftalık smoke testi, `trend_score` ve Trending satırı, `/takedowns`, admin'de takedown onayı. `link_checks` büyüyünce eski satırları budamak gerekecek (Free plan 500 MB).
+- Henüz yok: `trend_score` ve Trending satırı, `/takedowns`, admin'de takedown onayı. `link_checks` büyüyünce eski satırları budamak gerekecek (Free plan 500 MB).
 
 ## Rakip analizi (Ekim 2026)
 
@@ -48,7 +48,7 @@ Kural: rakip sitelerin listelerini kazıma veya kopyalama. Keşif birincil kayna
               /admin/candidates → tek tık onay → games (draft/published)
 
 games (published) → check-links (günlük) → link_checks + games.link_status
-                  → smoke (haftalık, Playwright) → ekran görüntüsü
+                  → smoke (haftalık, headless Chrome) → ekran görüntüsü
 ```
 
 ## 1. Keşif (`scripts/collect.ts`)
@@ -135,12 +135,14 @@ Parmak izi: `<title>` + ilk 2 KB görünür metnin normalize edilmiş SHA-256's�
 
 ## 5. Haftalık smoke test (`scripts/smoke.ts`)
 
-GitHub Actions'ta Playwright (Chromium) ile her oyunun sayfası açılır, 10 sn beklenir:
+Pazar 03:30 UTC (`weekly-smoke.yml`, elle de tetiklenir). Yayındaki her oyun headless Chrome'da kendi tarayıcı bağlamında açılır (bir sitenin storage'ı ya da service worker'ı sonrakine taşmaz), 10 sn beklenir:
 
-- Ekran görüntüsü (1280x720, WebP) Storage'a `smoke/<slug>.webp` olarak yüklenir, `games.screenshot_url/at` güncellenir.
-- Konsol hataları ve `canvas` elementi olup olmadığı `link_checks.details`'e yazılır.
-- Admin panelinde oyun başına son ekran görüntüsü gösterilir: rakiplerin elle yaptığı "played by us" kontrolünün yarı otomatik hali.
-- WebGPU isteyen sayfalar headless'ta açılmayabilir; bu durumda karar verilmez, sadece görüntü saklanır.
+- Ekran görüntüsü 960x540 WebP olarak `covers` bucket'ına `smoke/<slug>.webp` yüklenir (üzerine yazar, oyun başına tek dosya).
+- Sonuç `link_checks`'e `kind = 'smoke'` satırı olarak yazılır: HTTP durumu, son URL, sayfa başlığı, ilk konsol hatası; `details` içinde görüntü adresi, `canvas` var mı, ilk 5 konsol hatası.
+- `/admin/screenshots` oyun başına son görüntüyü gösterir: rakiplerin elle yaptığı "played by us" kontrolünün yarı otomatik hali.
+- Herkese açık `games` satırına ve `link_status`'e dokunmaz; plandaki `screenshot_url/at` sütunları eklenmedi.
+- Playwright yerine düz CDP (Node'un yerleşik WebSocket'i), yeni bağımlılık yok. Ubuntu runner'ında `google-chrome` hazır; localde Edge, `CHROME_PATH` ile değiştirilir. Chrome'a secret içeren env değişkenleri geçmez.
+- Runner'da GPU yok: WebGPU portları "desteklenmiyor" ekranını gösterir, bu da sitenin ayakta olduğunu gösterir. Bot doğrulama sayfası (Cloudflare) `unknown`, HTTP 4xx/5xx `broken`, gerisi `ok`.
 
 ## 6. Topluluk doğrulaması (Faz 3)
 
@@ -228,7 +230,7 @@ scripts/
   collect.ts          kaynakları çalıştırır, adayları yazar
   extract.ts          LLM ile alan çıkarır
   check-links.ts      günlük HTTP kontrolü
-  smoke.ts            haftalık Playwright kontrolü
+  smoke.ts            haftalık ekran görüntüsü (headless Chrome, CDP)
   sources/            hackernews.ts, googlenews.ts, reddit.ts, github.ts
   lib/                db.ts, revalidate.ts (mevcut), fingerprint.ts, classify.ts, notify.ts, score.ts
   *.test.ts           node:test + tsx (yeni test bağımlılığı yok)
@@ -237,7 +239,7 @@ scripts/
   weekly-smoke.yml    Pazar 03:30 UTC: smoke
 ```
 
-`package.json`: `"collect": "tsx scripts/collect.ts"`, `"extract": …`, `"check-links": …`, `"smoke": …`, `"test:scripts": "tsx --test scripts/**/*.test.ts"`.
+`package.json`: `"collect": "tsx scripts/collect.ts"`, `"extract": …`, `"check-links": …`, `"smoke": …`, `"test:scripts": "tsx --test scripts/**/*.test.ts src/**/*.test.ts"`.
 
 > **İnceleme notu — script'lerin çalıştırılması:** `src/lib`'deki server modülleri `import "server-only"` içeriyor ve düz Node'da hata veriyor. Mevcut örnek `npm run artwork` (`scripts/fill-artwork.ts`): `tsx --conditions=react-server --env-file=.env.local …` ile `server-only` boş modüle çözülür, `@/lib/steamgriddb`, `@/lib/storage` gibi modüller tekrar yazılmadan kullanılır. Supabase client'ı `scripts/lib/db.ts` (`createScriptClient`, secret key). Proje CommonJS olduğu için top-level `await` yok; `main()` kullan. Actions'ta `--env-file` yerine secret'lar env olarak verilir; `NEXT_PUBLIC_SITE_URL` ve `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` de gerekir (`env.ts` doğruluyor).
 

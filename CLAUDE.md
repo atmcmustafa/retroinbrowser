@@ -29,10 +29,10 @@ npm run db:types     # src/types/database.ts'i yeniden üret
 npm run collect      # keşif: kaynaklardan aday topla (--days 30 geriye doldurur)
 npm run extract      # adayların bilgilerini Gemini ücretsiz katmanıyla çıkar (--limit N)
 npm run check-links  # yayındaki linkleri kontrol et (--dry-run yazmaz)
-npm run test:scripts # scripts/ birim testleri
+npm run test:scripts # scripts/ ve src/lib birim testleri
 ```
 
-Bir işi bitirmeden önce `typecheck` ve `lint` temiz olmalı; `scripts/lib`'e dokunduysan `test:scripts` de.
+Bir işi bitirmeden önce `typecheck` ve `lint` temiz olmalı; `scripts/lib`'e ya da `src/lib/moderation.ts`'e dokunduysan `test:scripts` de.
 
 ## Kod kuralları
 
@@ -40,7 +40,7 @@ Bir işi bitirmeden önce `typecheck` ve `lint` temiz olmalı; `scripts/lib`'e d
 - Varsayılan Server Component. `"use client"` sadece etkileşim gereken yaprak bileşenlerde.
 - Okuma: `src/lib/data/*`. Yazma: `src/lib/actions/*` server action'ları. Her action girdiyi zod ile doğrular.
 - Admin action ve sayfaları `requireAdmin()` ile başlar; `proxy.ts` tek başına yeterli sayılmaz.
-- `createAdminClient()` RLS'i aşar: sadece `/submit` (Turnstile sonrası), `/go` (`increment_click` anon'a kapalı) ve `scripts/` içinde.
+- `createAdminClient()` RLS'i aşar: sadece `/submit` (Turnstile sonrası), `/go` (`increment_click` anon'a kapalı), yorum action'ları (oturum ve filtre sonrası) ve `scripts/` içinde.
 - Auth cookie'leri HttpOnly: tarayıcıda Supabase client yok, oturumlu her çağrı server'da.
 - Yeni fonksiyonlar varsayılan olarak kapalı (sadece owner ve service_role). RLS'te kullanılacak ya da herkese açık RPC olacaksa migration'da `grant execute ... to anon, authenticated`. Anon'un tablolara yazma yetkisi yok (yeni tablolar dahil).
 - Yeni bir dış script, iframe ya da görsel kaynağı ekleyince `next.config.ts`'teki CSP'yi güncelle.

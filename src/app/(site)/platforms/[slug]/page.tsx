@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!platform) return { title: "Platform not found" };
   return {
     title: `${platform.name} games in your browser`,
-    description: `Classic ${platform.name} games ported to run in your browser.`,
+    description: `Games first released on ${platform.name}, ported to run in your browser.`,
     alternates: { canonical: `/platforms/${platform.slug}` },
   };
 }
@@ -66,7 +66,7 @@ async function Platform({ params, searchParams }: { params: Params; searchParams
             {platform.name}
           </span>
         }
-        description={`Classic ${platform.name} games ported to the browser.`}
+        description={`Games first released on ${platform.name}, ported to run in your browser.`}
       />
       <FilterLink href={`/games?platform=${platform.slug}`} />
       <div className="mt-10">

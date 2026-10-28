@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { CommentsSection, CommentsSkeleton } from "@/components/site/comments-section";
 import { FavoriteControl, FavoriteControlSkeleton } from "@/components/site/favorite-control";
 import { badgesFor } from "@/components/site/game-badges";
 import { GameRow } from "@/components/site/game-row";
@@ -150,7 +151,7 @@ async function GameDetail({ params }: { params: Params }) {
                 className="size-2 rounded-full"
                 style={{ backgroundColor: game.platform.color }}
               />
-              {game.platform.name}
+              Originally on {game.platform.name}
             </Link>
           )}
           <h1 className="mt-2 font-display text-4xl leading-[1.05] font-extrabold tracking-tight text-balance break-words [font-stretch:125%] sm:text-[3.5rem]">
@@ -241,6 +242,18 @@ async function GameDetail({ params }: { params: Params }) {
           )}
         </div>
       </div>
+
+      <section id="comments" aria-labelledby="comments-heading" className="mt-16 max-w-2xl">
+        <h2
+          id="comments-heading"
+          className="font-display text-2xl font-extrabold tracking-tight [font-stretch:125%]"
+        >
+          Comments
+        </h2>
+        <Suspense fallback={<CommentsSkeleton />}>
+          <CommentsSection gameId={game.id} slug={game.slug} />
+        </Suspense>
+      </section>
 
       {similar.length > 0 && (
         <div className="mt-16">

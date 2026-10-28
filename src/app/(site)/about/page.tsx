@@ -27,6 +27,11 @@ export default function AboutPage() {
             We don&apos;t host game files or embed games here. The people who built each port
             deserve the visit.
           </p>
+          <p>
+            Many of these games first came out on consoles like the PlayStation or Xbox. The
+            platform on each listing is that original one; every port here runs in a web browser,
+            with no console or emulator to install.
+          </p>
         </TextSection>
 
         <TextSection title="How games get in">

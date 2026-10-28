@@ -22,6 +22,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  for (const tag of ["games", "taxonomy"]) revalidateTag(tag, { expire: 0 });
+  for (const tag of ["games", "taxonomy", "comments"]) revalidateTag(tag, { expire: 0 });
   return NextResponse.json({ revalidated: true });
 }

@@ -9,7 +9,7 @@ export function PlatformChips({ platforms }: { platforms: PlatformWithCount[] })
         id="browse-by-platform"
         className="font-display text-2xl font-extrabold tracking-tight [font-stretch:125%]"
       >
-        Browse by platform
+        Browse by original platform
       </h2>
       <ul className="mt-5 flex flex-wrap justify-center gap-2">
         {platforms.map((platform) => (

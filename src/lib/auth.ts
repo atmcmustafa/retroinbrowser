@@ -11,6 +11,16 @@ function text(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+// Shown next to comments: never the email, and a full name only as "Ada L.". Sign-up copies a
+// Google name into the username when there is no handle (handle_new_user), so usernames are
+// shortened too; GitHub and Discord handles have no spaces and come through unchanged.
+function publicName(name: string | null) {
+  const [first, ...rest] = name?.split(/\s+/) ?? [];
+  if (!first) return "Player";
+  const initial = [...(rest.at(-1) ?? "")][0]?.toUpperCase();
+  return (initial ? `${first} ${initial}.` : first).slice(0, 40).trimEnd();
+}
+
 // Cached per request: the header, the page and its buttons all ask for the same user.
 export const getCurrentUser = cache(async () => {
   const supabase = await createClient();
@@ -30,15 +40,12 @@ export const getCurrentUser = cache(async () => {
   const meta = claims.user_metadata ?? {};
   const email = claims.email ?? null;
   const metaAvatar = text(meta.avatar_url);
+  const fullName = text(meta.full_name) ?? text(meta.name);
   return {
     ...profile,
     email,
-    name:
-      profile.username ??
-      text(meta.full_name) ??
-      text(meta.name) ??
-      email?.split("@")[0] ??
-      "Player",
+    name: profile.username ?? fullName ?? email?.split("@")[0] ?? "Player",
+    publicName: publicName(profile.username ?? fullName),
     avatar:
       profile.avatar_url ?? (metaAvatar && providerAvatar.test(metaAvatar) ? metaAvatar : null),
     providers: claims.app_metadata?.providers ?? [],

@@ -112,7 +112,7 @@ export function CatalogFilters({ genres, platforms }: { genres: Option[]; platfo
           value={filters.platform ?? ALL}
           onValueChange={(value) => update({ platform: value === ALL ? null : value })}
         >
-          <SelectTrigger aria-label="Platform" className="w-[calc(50%-0.25rem)] sm:w-44">
+          <SelectTrigger aria-label="Original platform" className="w-[calc(50%-0.25rem)] sm:w-44">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

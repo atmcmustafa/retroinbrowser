@@ -65,13 +65,13 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] Admin oyun tablosunda son kontrolün rozeti (kırık, sayfa değişti, takedown?, yavaş)
 - [ ] Admin: `taken_down` onayı (oyunu gizle + `taken_down_at`), `changed` için "tamam" butonu
 - [x] `.github/workflows/discover.yml` (6 saatte bir) + `check-links.yml` (günlük) + secret'lar
-- [ ] `scripts/smoke.ts` + `weekly-smoke.yml`, admin'de son ekran görüntüsü
+- [x] `scripts/smoke.ts` + `weekly-smoke.yml` (Pazar 03:30 UTC), `/admin/screenshots`'ta oyun başına son ekran görüntüsü
 - [ ] Ana sayfada Trending satırı (`trend_score` + 7 günlük tıklama)
 
 ## Faz 3 — Topluluk
 
 - [ ] Herkese açık e-posta girişi: Supabase'e custom SMTP (CAPTCHA zaten açık)
-- [ ] Yorumlar (yazma yetkisi `security_hardening` ile kapalı; açarken rate limit trigger'ı ekle)
+- [x] Yorumlar: giriş şart, 500 karakter, hazır etiketler (en fazla 3) ve sayfada etiket özeti, link ve küfür/hakaret filtresi (`obscenity` + Türkçe liste), kullanıcı başına 10 dakikada 5 / günde 30 (trigger), sahibi ya da admin siler, `/admin/comments`
 - [ ] Puanlama (yazma yetkisi kapalı, yorumlarla aynı not)
 - [ ] "Works for me" raporları (`game_reports`) ve kartta cihaz bazlı özet
 - [ ] `/takedowns` sayfası (`link_checks` geçmişinden)

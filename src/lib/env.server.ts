@@ -10,6 +10,7 @@ const serverSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   DISCORD_WEBHOOK_URL: z.url().optional(),
   GITHUB_TOKEN: z.string().optional(),
+  CHROME_PATH: z.string().optional(),
 });
 
 export const serverEnv = serverSchema.parse({
@@ -20,4 +21,5 @@ export const serverEnv = serverSchema.parse({
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || undefined,
   DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL || undefined,
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || undefined,
+  CHROME_PATH: process.env.CHROME_PATH || undefined,
 });
