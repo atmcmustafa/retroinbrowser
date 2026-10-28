@@ -1,6 +1,7 @@
 import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
+import { publicName } from "@/lib/public-name";
 import { createClient } from "@/lib/supabase/server";
 
 // Mirrors profiles_avatar_url_check, so token metadata can't point the header at any URL.
@@ -11,17 +12,8 @@ function text(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-// Shown next to comments: never the email, and a full name only as "Ada L.". Sign-up copies a
-// Google name into the username when there is no handle (handle_new_user), so usernames are
-// shortened too; GitHub and Discord handles have no spaces and come through unchanged.
-function publicName(name: string | null) {
-  const [first, ...rest] = name?.split(/\s+/) ?? [];
-  if (!first) return "Player";
-  const initial = [...(rest.at(-1) ?? "")][0]?.toUpperCase();
-  return (initial ? `${first} ${initial}.` : first).slice(0, 40).trimEnd();
-}
-
 // Cached per request: the header, the page and its buttons all ask for the same user.
+// A banned account counts as signed out right away; its access token can outlive the ban.
 export const getCurrentUser = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
@@ -30,10 +22,10 @@ export const getCurrentUser = cache(async () => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, avatar_url, role, created_at")
+    .select("id, username, avatar_url, role, created_at, banned_at")
     .eq("id", claims.sub)
     .single();
-  if (!profile) return null;
+  if (!profile || profile.banned_at) return null;
 
   // A provider linked after sign-up (Google on an email account) leaves the profile empty;
   // the name and picture in the token fill the gaps.

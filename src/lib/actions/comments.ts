@@ -2,7 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, requireAdmin } from "@/lib/auth";
 import { COMMENT_MAX_LENGTH, COMMENT_MAX_TAGS, commentTagKeys } from "@/lib/comments";
 import { findCommentProblem } from "@/lib/moderation";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -73,11 +73,9 @@ export async function postComment(input: {
   if (gameError) console.error("Looking up the game failed", gameError);
   if (!game) return { ok: false, message: "This game isn't open for comments." };
 
-  // Usernames are chosen freely, so they pass the same filter before showing up publicly.
-  const authorName = findCommentProblem(user.publicName) ? "Player" : user.publicName;
   const { error } = await admin
     .from("comments")
-    .insert({ game_id: gameId, user_id: user.id, author_name: authorName, body, tags });
+    .insert({ game_id: gameId, user_id: user.id, author_name: user.publicName, body, tags });
   if (error) {
     if (error.code === "P0001" && error.hint === "rate_limited") {
       return { ok: false, message: "You're commenting too fast. Try again in a few minutes." };
@@ -111,9 +109,11 @@ export async function deleteComment(id: string): Promise<CommentResult> {
     return { ok: false, message: "That comment is already gone." };
   }
 
+  // Admins can restore what an admin deleted, never what the author took down.
+  const own = comment.user_id === user.id;
   let update = admin
     .from("comments")
-    .update({ deleted_at: new Date().toISOString() })
+    .update({ deleted_at: new Date().toISOString(), deleted_by: own ? "author" : "admin" })
     .eq("id", parsed.data)
     .is("deleted_at", null);
   if (user.role !== "admin") update = update.eq("user_id", user.id);
@@ -125,4 +125,40 @@ export async function deleteComment(id: string): Promise<CommentResult> {
 
   updateTag(`comments:${comment.game_id}`);
   return { ok: true };
+}
+
+const moderateSchema = z.object({ ids: z.array(z.uuid()).min(1).max(100), deleted: z.boolean() });
+
+// /admin/comments: delete or restore in one click, one comment or a selection. Only the rows
+// that change come back, so Undo reverts exactly those: deleting skips comments already gone,
+// restoring skips the ones their authors deleted.
+export async function setCommentsDeleted(
+  ids: string[],
+  deleted: boolean,
+): Promise<{ ok: true; ids: string[] } | { ok: false; message: string }> {
+  await requireAdmin();
+  const parsed = moderateSchema.safeParse({ ids, deleted });
+  if (!parsed.success) return { ok: false, message: "Pick at least one comment." };
+
+  const comments = createAdminClient().from("comments");
+  const { data, error } = await (
+    parsed.data.deleted
+      ? comments
+          .update({ deleted_at: new Date().toISOString(), deleted_by: "admin" })
+          .in("id", parsed.data.ids)
+          .is("deleted_at", null)
+      : comments
+          .update({ deleted_at: null, deleted_by: null })
+          .in("id", parsed.data.ids)
+          .eq("deleted_by", "admin")
+  ).select("id, game_id");
+  if (error) {
+    console.error("Moderating comments failed", error);
+    return { ok: false, message: "Couldn't update the comments. Try again." };
+  }
+
+  for (const gameId of new Set(data.map(({ game_id }) => game_id))) {
+    updateTag(`comments:${gameId}`);
+  }
+  return { ok: true, ids: data.map(({ id }) => id) };
 }

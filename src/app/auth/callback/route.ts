@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
   console.warn("Sign-in failed", failure, searchParams.get("error_description"));
 
   const login = new URL("/login", request.url);
-  login.searchParams.set("error", failure === "otp_expired" ? "expired" : "failed");
+  login.searchParams.set(
+    "error",
+    failure === "otp_expired" ? "expired" : failure === "user_banned" ? "banned" : "failed",
+  );
   if (next !== "/") login.searchParams.set("next", next);
   return NextResponse.redirect(login);
 }

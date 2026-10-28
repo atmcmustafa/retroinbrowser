@@ -140,6 +140,7 @@ export type Database = {
           body: string;
           created_at: string;
           deleted_at: string | null;
+          deleted_by: string | null;
           game_id: string;
           id: string;
           tags: string[];
@@ -150,6 +151,7 @@ export type Database = {
           body?: string;
           created_at?: string;
           deleted_at?: string | null;
+          deleted_by?: string | null;
           game_id: string;
           id?: string;
           tags?: string[];
@@ -160,6 +162,7 @@ export type Database = {
           body?: string;
           created_at?: string;
           deleted_at?: string | null;
+          deleted_by?: string | null;
           game_id?: string;
           id?: string;
           tags?: string[];
@@ -521,6 +524,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null;
+          ban_reason: string | null;
+          banned_at: string | null;
           created_at: string;
           id: string;
           role: Database["public"]["Enums"]["user_role"];
@@ -528,6 +533,8 @@ export type Database = {
         };
         Insert: {
           avatar_url?: string | null;
+          ban_reason?: string | null;
+          banned_at?: string | null;
           created_at?: string;
           id: string;
           role?: Database["public"]["Enums"]["user_role"];
@@ -535,6 +542,8 @@ export type Database = {
         };
         Update: {
           avatar_url?: string | null;
+          ban_reason?: string | null;
+          banned_at?: string | null;
           created_at?: string;
           id?: string;
           role?: Database["public"]["Enums"]["user_role"];

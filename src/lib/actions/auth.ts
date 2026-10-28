@@ -27,6 +27,7 @@ const sendErrors: Record<string, string> = {
   over_request_rate_limit: "Too many attempts. Try again in a few minutes.",
   email_address_not_authorized: "Sign-in isn't open to everyone yet.",
   captcha_failed: "The security check failed. Reload the page and try again.",
+  user_banned: "This account is banned.",
 };
 
 function callbackUrl(next: string | undefined) {
