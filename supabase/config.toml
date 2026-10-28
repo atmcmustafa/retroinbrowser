@@ -223,7 +223,8 @@ web3 = 30
 [auth.captcha]
 enabled = false
 provider = "turnstile"
-secret = "env(TURNSTILE_SECRET_KEY)"
+# The production widget's secret; .env.local's TURNSTILE_SECRET_KEY is the test key.
+secret = "env(SUPABASE_AUTH_CAPTCHA_SECRET)"
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
@@ -346,7 +347,7 @@ email_optional = false
 
 # Callback for both apps: https://wnumnhogqurumgeejnvb.supabase.co/auth/v1/callback (docs/SETUP.md 3).
 [auth.external.google]
-enabled = false
+enabled = true
 client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 redirect_uri = ""
@@ -355,7 +356,7 @@ skip_nonce_check = false
 email_optional = false
 
 [auth.external.discord]
-enabled = false
+enabled = true
 client_id = "env(SUPABASE_AUTH_EXTERNAL_DISCORD_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_EXTERNAL_DISCORD_SECRET)"
 redirect_uri = ""
