@@ -40,6 +40,17 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] Vercel Firewall: POST, `/go/`, `/api/`, `/auth/` için IP başına 100 istek/dk kuralı, `log` modunda
 - [ ] Firewall kuralını trafiğe bakıp 429'a çevir (bir hafta sonra; `docs/HANDOFF.md`)
 
+## SEO
+
+- [x] Teknik tur (28 Ekim): "Play X in your browser" başlıkları, site adı için `WebSite` JSON-LD, `BreadcrumbList`, `/login` robots'tan çıktı (noindex). Lighthouse SEO 100.
+- [ ] Search Console: Domain property (Cloudflare ile doğrulama), sitemap gönder, ana sayfa ve birkaç oyun için "Request indexing" (kullanıcı, panel işi)
+- [ ] Bing Webmaster Tools: Search Console'dan içe aktar (kullanıcı; Bing, DuckDuckGo ve ChatGPT aramasını besler)
+- [ ] Oyun sayfasına uzun içerik: `games.description` (nasıl açılır, kontroller, gereken dosyalar, tarayıcı şartı, bilinen sorunlar), admin formunda alan; migration bağımsız agent incelemesi
+- [ ] Koleksiyon sayfaları: telefonda oynanabilenler, dosya gerektirmeyenler, çok oyunculu (mevcut filtrelerden, giriş paragrafıyla)
+- [ ] Aynı oyunun birden çok portu olunca orijinal oyun sayfası (portları karşılaştırır)
+- [ ] Katalog 36'yı geçince sayfalı listelerde `?page=N` canonical (`docs/ARCHITECTURE.md` → SEO)
+- [ ] Puanlama (Faz 3) gelince `VideoGame` JSON-LD'ye `aggregateRating`
+
 ## Faz 2 — Otomasyon (detay: `docs/AUTOMATION.md`)
 
 - [ ] Migration: `link_status` yeni değerleri, `games` kontrol alanları, `link_checks`, `candidate_mentions`, `candidates.extracted`, `candidate_source += googlenews` + RLS (bağımsız agent incelemesi)

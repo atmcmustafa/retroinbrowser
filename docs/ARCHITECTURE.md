@@ -80,8 +80,12 @@ supabase/            migrations/, seed.sql, config.toml
 
 ## SEO
 
-- `src/app/sitemap.ts` (yayındaki oyunlar + içi dolu tür/platform sayfaları), `robots.ts` (`/admin`, `/api/`, `/go/`, `/login`, `/auth/` kapalı). İkisi de önbellekli veriden üretilir, `games` etiketiyle yenilenir.
+- `src/app/sitemap.ts` (yayındaki oyunlar + içi dolu tür/platform sayfaları), `robots.ts` (`/admin`, `/api/`, `/go/`, `/auth/`, `/profile` kapalı). İkisi de önbellekli veriden üretilir, `games` etiketiyle yenilenir. `/login` bilerek açık: her sayfa ona link veriyor, robots'ta kapalı olsaydı Google `noindex`'i okuyamaz, "Indexed, though blocked by robots.txt" uyarısı çıkardı.
+- Başlıklar arama kalıbına göre: oyun sayfası `Play {orijinal oyun} in your browser: {port}`, ana sayfa `Play classic games in your browser`.
+- Bulunmayan oyun 200 + `noindex` döner (PPR kabuğu `notFound()`'dan önce akıyor); Search Console'da "Excluded by noindex" olarak görünür, hata değil.
+- Sayfalı listelerde (`?page=N`) canonical sayfa 1'i gösteriyor. Sayfa boyu 36, katalog bunu geçince `?page=N` kendi canonical'ını almalı; `generateMetadata` `searchParams` okursa metadata akışa düşer, önce dokümana bak.
 - OG görselleri: kök `opengraph-image.tsx` (marka kartı) ve `games/[slug]/opengraph-image.tsx` (hero + kapak + başlık). Satori statik TTF ister: `assets/fonts/` (Latin alt küme), `next.config.ts` `outputFileTracingIncludes` ile pakete girer. WebP kapaklar `sharp` ile JPEG'e çevrilip verilir.
 - Sayfa `openGraph` tanımlarsa kökteki obje birleşmez, yerine geçer: `baseOpenGraph`'ı (`src/lib/site.ts`) yay. Tanımlamayan sayfalar başlık/açıklamayı Next'ten otomatik alır.
-- JSON-LD: ana sayfada `WebSite` + `SearchAction`, oyun sayfasında `VideoGame` (`isBasedOn` orijinal oyun). `<JsonLd>` `<` karakterini kaçışlar.
+- JSON-LD: ana sayfada `WebSite` (Google'ın sonuçlarda gösterdiği site adı için `alternateName`, `publisher` logosu; sitelinks arama kutusu 2024'te kalktı, `SearchAction` yok), oyun sayfasında `BreadcrumbList` (Games › platform › port) ve `VideoGame` (`isBasedOn` orijinal oyun). Puanlama gelince `aggregateRating` eklenirse yıldızlı sonuç çıkabilir. `<JsonLd>` `<` karakterini kaçışlar.
+- Search Console ve Bing Webmaster Tools: Domain property, Cloudflare DNS ile doğrulanır; sitemap `https://retroinbrowser.com/sitemap.xml`.
 - İkonlar `scripts/generate-icons.ts` ile logodan üretilir (`icon.svg`, `favicon.ico`, `apple-icon.png`); logo değişirse tekrar çalıştır.

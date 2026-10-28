@@ -17,25 +17,26 @@ import {
 } from "@/lib/data/games";
 import { getGenres, getPlatforms } from "@/lib/data/taxonomy";
 import { env } from "@/lib/env";
-import { siteName } from "@/lib/site";
+import { siteDescription, siteName } from "@/lib/site";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const ROW_SIZE = 7;
 
-// Lets search engines offer a search box that lands on /games.
+// Google takes the site name shown above results from here. It retired the sitelinks
+// search box in 2024, so there is no SearchAction.
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: siteName,
+  alternateName: ["Retro In Browser", "retroinbrowser.com"],
   url: env.NEXT_PUBLIC_SITE_URL,
-  potentialAction: {
-    "@type": "SearchAction",
-    target: {
-      "@type": "EntryPoint",
-      urlTemplate: `${new URL("/games", env.NEXT_PUBLIC_SITE_URL).href}?q={search_term_string}`,
-    },
-    "query-input": "required name=search_term_string",
+  description: siteDescription,
+  publisher: {
+    "@type": "Organization",
+    name: siteName,
+    url: env.NEXT_PUBLIC_SITE_URL,
+    logo: new URL("/apple-icon.png", env.NEXT_PUBLIC_SITE_URL).href,
   },
 };
 
