@@ -4,6 +4,8 @@ import { z } from "zod";
 // safeParse: it came from an LLM reading an untrusted page, so every field is a suggestion.
 export const extractedSchema = z.object({
   is_port: z.boolean(),
+  // Missing on extractions made before it existed.
+  available: z.boolean().nullable().optional(),
   confidence: z.number(),
   reason: z.string(),
   title: z.string().nullable(),

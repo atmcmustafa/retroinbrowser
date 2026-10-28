@@ -65,18 +65,25 @@ async function request(apiKey: string, model: string, body: object) {
 // skipped for the rest of the run and the next one in the list is tried.
 const busy = new Set<string>();
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// `readUrls` turns on URL context: Google fetches the URLs named in the input, so sites that
+// refuse our bot can still be read. Google Search grounding would also find unlinked ports,
+// but this free-tier key gets "quota exceeded" for it on Gemini 3 models.
 export async function generateJson<T extends z.ZodType>(options: {
   apiKey: string;
   models: string[];
   system: string;
   input: string;
   schema: T;
+  readUrls?: boolean;
 }): Promise<{ model: string; output: z.infer<T> }> {
   const schema: Record<string, unknown> = z.toJSONSchema(options.schema);
   delete schema.$schema;
   const body = {
     systemInstruction: { parts: [{ text: options.system }] },
     contents: [{ role: "user", parts: [{ text: options.input }] }],
+    ...(options.readUrls && { tools: [{ urlContext: {} }] }),
     generationConfig: {
       responseFormat: { text: { mimeType: "APPLICATION_JSON", schema } },
       thinkingConfig: { thinkingLevel: "low" },
@@ -85,15 +92,21 @@ export async function generateJson<T extends z.ZodType>(options: {
 
   let last: GeminiError | null = null;
   for (const model of options.models) {
-    if (busy.has(model)) continue;
-    try {
-      const text = await request(options.apiKey, model, body);
-      return { model, output: options.schema.parse(JSON.parse(text)) };
-    } catch (error) {
-      if (!(error instanceof GeminiError) || ![500, 503, 504].includes(error.status)) throw error;
-      console.warn(`${model} is busy (${error.status}); trying the next model.`);
-      busy.add(model);
-      last = error;
+    // A 503 often clears within seconds; a hung request (504) means the model is swamped.
+    for (let attempt = 0; attempt < 2 && !busy.has(model); attempt++) {
+      try {
+        const text = await request(options.apiKey, model, body);
+        return { model, output: options.schema.parse(JSON.parse(text)) };
+      } catch (error) {
+        if (!(error instanceof GeminiError) || ![500, 503, 504].includes(error.status)) throw error;
+        last = error;
+        if (attempt === 0 && error.status === 503) {
+          await sleep(15_000);
+          continue;
+        }
+        console.warn(`${model} is busy (${error.status}); trying the next model.`);
+        busy.add(model);
+      }
     }
   }
   throw last ?? new GeminiError("every model is busy", 503);
