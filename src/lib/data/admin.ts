@@ -1,7 +1,14 @@
 import "server-only";
+import type { User } from "@supabase/supabase-js";
+import { z } from "zod";
 import { toSearchTerm } from "@/lib/search";
-import type { AdminGamesFilters } from "@/lib/search-params";
-import { createClient } from "@/lib/supabase/server";
+import type {
+  AdminCommentsFilters,
+  AdminGamesFilters,
+  AdminUsersFilters,
+} from "@/lib/search-params";
+import { requireAdmin } from "@/lib/auth";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { Constants, type Enums } from "@/types/database";
 
 type CountResult = { count: number | null; error: unknown };
@@ -15,7 +22,9 @@ export async function getAdminStats() {
   const supabase = await createClient();
   const games = () => supabase.from("games").select("id", { count: "exact", head: true });
 
-  const [published, drafts, pending, broken] = await Promise.all([
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [published, drafts, pending, broken, users, comments] = await Promise.all([
     games().eq("status", "published"),
     games().eq("status", "draft"),
     supabase
@@ -23,6 +32,12 @@ export async function getAdminStats() {
       .select("id", { count: "exact", head: true })
       .eq("status", "pending"),
     games().eq("status", "published").eq("link_status", "broken"),
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase
+      .from("comments")
+      .select("id", { count: "exact", head: true })
+      .is("deleted_at", null)
+      .gte("created_at", weekAgo),
   ]);
 
   return {
@@ -30,6 +45,8 @@ export async function getAdminStats() {
     drafts: countOf(drafts),
     pending: countOf(pending),
     broken: countOf(broken),
+    users: countOf(users),
+    comments: countOf(comments),
   };
 }
 
@@ -111,17 +128,124 @@ export type AdminTaxonomy = Awaited<ReturnType<typeof getAdminTaxonomy>>;
 export type AdminPlatform = AdminTaxonomy["platforms"][number];
 export type AdminGenre = AdminTaxonomy["genres"][number];
 
-// Deleted comments stay in the list: RLS shows them to admins only.
-export async function getAdminComments() {
+export const ADMIN_COMMENTS_PER_PAGE = 25;
+
+const isUuid = (value: string | null): value is string => z.uuid().safeParse(value).success;
+
+// RLS shows deleted comments to admins only, so they can be restored from here.
+export async function getAdminComments({ q, status, user, game, page }: AdminCommentsFilters) {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("comments")
-    .select("id, author_name, body, tags, created_at, deleted_at, game:games(id, slug, title)")
+    .select(
+      "id, user_id, author_name, body, tags, created_at, deleted_at, deleted_by, game:games(id, slug, title), author:profiles(username, banned_at)",
+      { count: "exact" },
+    )
     .order("created_at", { ascending: false })
-    .limit(200);
+    .order("id");
+
+  if (status === "visible") query = query.is("deleted_at", null);
+  if (status === "deleted") query = query.not("deleted_at", "is", null);
+  if (isUuid(user)) query = query.eq("user_id", user);
+  if (isUuid(game)) query = query.eq("game_id", game);
+  const term = toSearchTerm(q);
+  if (term) query = query.or(`body.ilike."%${term}%",author_name.ilike."%${term}%"`);
+
+  const from = (Math.max(1, page) - 1) * ADMIN_COMMENTS_PER_PAGE;
+  const { data, count, error } = await query.range(from, from + ADMIN_COMMENTS_PER_PAGE - 1);
+  // Past the last page PostgREST answers 416; the page shows the way back instead.
+  if (error?.code === "PGRST103") return { comments: [], total: count ?? 0 };
   if (error) throw error;
-  return data;
+  return { comments: data, total: count ?? data.length };
 }
+
+export type AdminCommentRow = Awaited<ReturnType<typeof getAdminComments>>["comments"][number];
+
+export const ADMIN_USERS_PER_PAGE = 50;
+
+function metaText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+async function allProfiles(admin: ReturnType<typeof createAdminClient>) {
+  const profiles = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await admin
+      .from("profiles")
+      .select("id, username, role, banned_at, ban_reason, comments(count)")
+      .is("comments.deleted_at", null)
+      .order("id")
+      .range(from, from + 999);
+    if (error) throw error;
+    profiles.push(...data);
+    if (data.length < 1000) return profiles;
+  }
+}
+
+// Emails and sign-in times live in auth.users, which only the secret key can read, so this checks
+// for an admin itself. Both lists come in pages of 1,000 (PostgREST's row cap); filtering and
+// paging happen here.
+export async function getAdminUsers({ q, status, page }: AdminUsersFilters) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const accounts: User[] = [];
+  for (let next = 1; ; next++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page: next, perPage: 1000 });
+    if (error) throw error;
+    accounts.push(...data.users);
+    if (data.users.length < 1000) break;
+  }
+
+  const profileOf = new Map((await allProfiles(admin)).map((profile) => [profile.id, profile]));
+  const now = Date.now();
+
+  const all = accounts
+    .map((account) => {
+      const profile = profileOf.get(account.id);
+      const fullName =
+        metaText(account.user_metadata?.full_name) ?? metaText(account.user_metadata?.name);
+      return {
+        id: account.id,
+        email: account.email ?? null,
+        username: profile?.username ?? null,
+        fullName,
+        role: profile?.role ?? "user",
+        bannedAt: profile?.banned_at ?? null,
+        banReason: profile?.ban_reason ?? null,
+        // False after a ban whose Auth step failed: the site blocks them, sign-in still works.
+        authBanned: Boolean(account.banned_until && Date.parse(account.banned_until) > now),
+        comments: profile?.comments[0]?.count ?? 0,
+        providers: (account.app_metadata?.providers as string[] | undefined) ?? [],
+        createdAt: account.created_at,
+        lastSignInAt: account.last_sign_in_at ?? null,
+      };
+    })
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const term = q.trim().toLowerCase();
+  const filtered = all.filter(
+    (user) =>
+      (!term ||
+        [user.email, user.username, user.fullName].some((value) =>
+          value?.toLowerCase().includes(term),
+        )) &&
+      (status !== "banned" || user.bannedAt !== null) &&
+      (status !== "admins" || user.role === "admin"),
+  );
+
+  const from = (Math.max(1, page) - 1) * ADMIN_USERS_PER_PAGE;
+  return {
+    users: filtered.slice(from, from + ADMIN_USERS_PER_PAGE),
+    total: filtered.length,
+    counts: {
+      all: all.length,
+      banned: all.filter((user) => user.bannedAt).length,
+      admins: all.filter((user) => user.role === "admin").length,
+    },
+  };
+}
+
+export type AdminUserRow = Awaited<ReturnType<typeof getAdminUsers>>["users"][number];
 
 // The latest weekly screenshot per published game (scripts/smoke.ts).
 export async function getSmokeChecks() {

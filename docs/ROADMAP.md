@@ -72,6 +72,8 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 
 - [ ] Herkese açık e-posta girişi: Supabase'e custom SMTP (CAPTCHA zaten açık)
 - [x] Yorumlar: giriş şart, 500 karakter, hazır etiketler (en fazla 3) ve sayfada etiket özeti, link ve küfür/hakaret filtresi (`obscenity` + Türkçe liste), kullanıcı başına 10 dakikada 5 / günde 30 (trigger), sahibi ya da admin siler, `/admin/comments`
+- [x] Yorumlarda 5'erli sayfalama (`?comments=2`, etiket özeti tüm yorumlardan)
+- [x] Admin: `/admin/comments` arama, durum/kullanıcı/oyun filtresi, tek tıkla sil/geri al (Undo) ve toplu işlem; `/admin/users` liste, arama, kullanıcı adı değiştirme, ban/ban kaldırma (isteğe bağlı yorumları da siler), hesap silme; özet sayfasında kullanıcı ve haftalık yorum sayısı
 - [ ] Puanlama (yazma yetkisi kapalı, yorumlarla aynı not)
 - [ ] "Works for me" raporları (`game_reports`) ve kartta cihaz bazlı özet
 - [ ] `/takedowns` sayfası (`link_checks` geçmişinden)

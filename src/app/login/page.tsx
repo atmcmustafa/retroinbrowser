@@ -22,6 +22,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 const loginErrors = new Map([
   ["expired", "That link has expired. Request a new one."],
   ["failed", "Sign-in didn't complete. Try again."],
+  ["banned", "This account is banned."],
 ]);
 
 export default function LoginPage({ searchParams }: { searchParams: SearchParams }) {

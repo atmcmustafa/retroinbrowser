@@ -21,6 +21,7 @@ import { baseOpenGraph } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export async function generateStaticParams() {
   const slugs = await getPublishedSlugs();
@@ -44,15 +45,27 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default function GamePage({ params }: { params: Params }) {
+export default function GamePage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
   return (
     <Suspense fallback={<GameSkeleton />}>
-      <GameDetail params={params} />
+      <GameDetail params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function GameDetail({ params }: { params: Params }) {
+async function GameDetail({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
   const { slug } = await params;
   const game = await getGameBySlug(slug);
   if (!game) notFound();
@@ -252,7 +265,7 @@ async function GameDetail({ params }: { params: Params }) {
           Comments
         </h2>
         <Suspense fallback={<CommentsSkeleton />}>
-          <CommentsSection gameId={game.id} slug={game.slug} />
+          <CommentsSection gameId={game.id} slug={game.slug} searchParams={searchParams} />
         </Suspense>
       </section>
 

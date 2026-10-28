@@ -1,20 +1,25 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function Pagination({
   page,
   totalPages,
   hrefFor,
+  label = "Pagination",
+  className = "mt-12",
 }: {
   page: number;
   totalPages: number;
   hrefFor: (page: number) => string;
+  label?: string;
+  className?: string;
 }) {
   if (totalPages <= 1) return null;
 
   return (
-    <nav aria-label="Pagination" className="mt-12 flex items-center justify-center gap-3">
+    <nav aria-label={label} className={cn("flex items-center justify-center gap-3", className)}>
       <PageLink href={page > 1 ? hrefFor(page - 1) : null} label="Previous page">
         <ChevronLeftIcon data-icon="inline-start" />
         Previous

@@ -18,6 +18,8 @@ export default async function AdminOverviewPage() {
     { label: "Drafts", value: stats.drafts, href: "/admin/games?status=draft" },
     { label: "Pending candidates", value: stats.pending, href: "/admin/candidates" },
     { label: "Broken links", value: stats.broken },
+    { label: "Users", value: stats.users, href: "/admin/users" },
+    { label: "Comments this week", value: stats.comments, href: "/admin/comments" },
   ];
 
   return (
@@ -52,7 +54,7 @@ export default async function AdminOverviewPage() {
         </div>
       )}
 
-      <dl className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <dl className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-3">
         {tiles.map(({ label, value, href }) => (
           <div
             key={label}
