@@ -7,7 +7,8 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // /go/ counts Play clicks; crawlers following it would inflate the Popular ranking.
-      disallow: ["/admin", "/api/", "/go/", "/login", "/auth/", "/profile"],
+      // /login stays crawlable: every page links to it, and Google only drops it if it can read its noindex.
+      disallow: ["/admin", "/api/", "/go/", "/auth/", "/profile"],
     },
     sitemap: new URL("/sitemap.xml", env.NEXT_PUBLIC_SITE_URL).href,
   };

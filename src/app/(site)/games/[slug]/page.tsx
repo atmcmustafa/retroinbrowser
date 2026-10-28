@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const game = await getGameBySlug(slug);
   if (!game) return { title: "Game not found" };
 
-  const title = `${game.original_title} in your browser: ${game.title}`;
+  const title = `Play ${game.original_title} in your browser: ${game.title}`;
   const description =
     game.summary ?? `Play ${game.original_title} in your browser with ${game.title}.`;
   return {
@@ -62,15 +62,35 @@ async function GameDetail({ params }: { params: Params }) {
   );
   const badges = badgesFor(game);
   const host = new URL(game.play_url).hostname.replace(/^www\./, "");
+  const absolute = (path: string) => new URL(path, env.NEXT_PUBLIC_SITE_URL).href;
+  const breadcrumbs = [
+    { name: "Games", path: "/games" },
+    ...(game.platform
+      ? [{ name: game.platform.name, path: `/platforms/${game.platform.slug}` }]
+      : []),
+    { name: game.title, path: `/games/${game.slug}` },
+  ];
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <JsonLd
         data={{
           "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: breadcrumbs.map(({ name, path }, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name,
+            item: absolute(path),
+          })),
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
           "@type": "VideoGame",
           name: game.title,
-          url: new URL(`/games/${game.slug}`, env.NEXT_PUBLIC_SITE_URL).href,
+          url: absolute(`/games/${game.slug}`),
           sameAs: game.play_url,
           description: game.summary ?? undefined,
           image: game.cover_url ?? undefined,

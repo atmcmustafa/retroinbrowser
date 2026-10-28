@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   applicationName: siteName,
   title: {
-    default: "RetroInBrowser — Classic games ported to the web",
+    default: "Play classic games in your browser · RetroInBrowser",
     template: "%s · RetroInBrowser",
   },
   description: siteDescription,
