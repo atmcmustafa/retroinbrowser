@@ -26,7 +26,7 @@ cp .env.example .env.local
    ```
    Komut `config.toml`'un `env(...)` ile okuduğu anahtarları `.env.local`'dan alır, başka bir şey geçirmez.
    - Varsayılan e-posta servisi sadece organizasyon ekibindeki adreslere ve düşük saatlik limitle gönderir. Admin girişi için yeterli; e-postayla herkese açık girişten önce Authentication → Emails → SMTP ile kendi servisini bağla
-7. URL'ler (`config.toml` `[auth]`): Redirect URLs `http://localhost:3000/**`, `https://retroinbrowser.com/**` (uygulandı). Site URL şimdilik `http://localhost:3000`; canlıya alırken `https://retroinbrowser.com` yap ve push et
+7. URL'ler (`config.toml` `[auth]`): Site URL `https://retroinbrowser.com`, Redirect URLs `http://localhost:3000/**` ve `https://retroinbrowser.com/**`. Uygulama her zaman açık `redirectTo` gönderir, local geliştirme bu yüzden etkilenmez
 
 ## 3. OAuth (Google, Discord)
 
