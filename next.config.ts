@@ -7,6 +7,19 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
 const supabase = new URL(supabaseUrl);
 
+// Local values (localhost, Cloudflare's Turnstile test keys) build fine but send sign-ins back to
+// localhost and let every bot through /submit, so a production deploy with them must not build.
+if (process.env.VERCEL_ENV === "production") {
+  const testKey = /^[123]x0+[A-F]{2}$/;
+  const problems = [
+    !process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") && "NEXT_PUBLIC_SITE_URL isn't https",
+    testKey.test(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "") &&
+      "Turnstile site key is a test key",
+    testKey.test(process.env.TURNSTILE_SECRET_KEY ?? "") && "Turnstile secret is a test key",
+  ].filter(Boolean);
+  if (problems.length) throw new Error(`Production env looks local: ${problems.join(", ")}`);
+}
+
 // Static shells (cacheComponents) can't carry per-request nonces, so inline scripts stay allowed;
 // the policy still pins script and frame sources and blocks framing, plugins and <base>.
 // No form-action: Chrome applies it to every redirect after a form post, and the OAuth sign-in
