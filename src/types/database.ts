@@ -8,11 +8,54 @@ export type Database = {
   };
   public: {
     Tables: {
+      candidate_mentions: {
+        Row: {
+          candidate_id: string;
+          id: number;
+          points: number | null;
+          seen_at: string;
+          source: Database["public"]["Enums"]["candidate_source"];
+          title: string | null;
+          url: string;
+        };
+        Insert: {
+          candidate_id: string;
+          id?: never;
+          points?: number | null;
+          seen_at?: string;
+          source: Database["public"]["Enums"]["candidate_source"];
+          title?: string | null;
+          url: string;
+        };
+        Update: {
+          candidate_id?: string;
+          id?: never;
+          points?: number | null;
+          seen_at?: string;
+          source?: Database["public"]["Enums"]["candidate_source"];
+          title?: string | null;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "candidate_mentions_candidate_id_fkey";
+            columns: ["candidate_id"];
+            isOneToOne: false;
+            referencedRelation: "candidates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       candidates: {
         Row: {
           created_at: string;
+          extract_attempts: number;
+          extracted: Json | null;
+          extracted_at: string | null;
+          first_seen_at: string;
           game_id: string | null;
           id: string;
+          last_seen_at: string;
           note: string | null;
           raw: Json | null;
           reviewed_at: string | null;
@@ -27,8 +70,13 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          extract_attempts?: number;
+          extracted?: Json | null;
+          extracted_at?: string | null;
+          first_seen_at?: string;
           game_id?: string | null;
           id?: string;
+          last_seen_at?: string;
           note?: string | null;
           raw?: Json | null;
           reviewed_at?: string | null;
@@ -43,8 +91,13 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          extract_attempts?: number;
+          extracted?: Json | null;
+          extracted_at?: string | null;
+          first_seen_at?: string;
           game_id?: string | null;
           id?: string;
+          last_seen_at?: string;
           note?: string | null;
           raw?: Json | null;
           reviewed_at?: string | null;
@@ -217,15 +270,20 @@ export type Database = {
           click_count: number;
           cover_url: string | null;
           created_at: string;
+          description: string | null;
           developer: string | null;
+          fail_streak: number;
           featured: boolean;
           gamepad_support: boolean;
           hero_url: string | null;
           id: string;
           last_checked_at: string | null;
+          last_ok_at: string | null;
           link_status: Database["public"]["Enums"]["link_status"];
           mobile_support: boolean;
           original_title: string;
+          page_fingerprint: string | null;
+          page_title: string | null;
           platform_id: number | null;
           play_url: string;
           published_at: string | null;
@@ -236,6 +294,7 @@ export type Database = {
           status: Database["public"]["Enums"]["game_status"];
           steamgriddb_id: number | null;
           summary: string | null;
+          taken_down_at: string | null;
           tech: string | null;
           title: string;
           updated_at: string;
@@ -244,15 +303,20 @@ export type Database = {
           click_count?: number;
           cover_url?: string | null;
           created_at?: string;
+          description?: string | null;
           developer?: string | null;
+          fail_streak?: number;
           featured?: boolean;
           gamepad_support?: boolean;
           hero_url?: string | null;
           id?: string;
           last_checked_at?: string | null;
+          last_ok_at?: string | null;
           link_status?: Database["public"]["Enums"]["link_status"];
           mobile_support?: boolean;
           original_title: string;
+          page_fingerprint?: string | null;
+          page_title?: string | null;
           platform_id?: number | null;
           play_url: string;
           published_at?: string | null;
@@ -263,6 +327,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["game_status"];
           steamgriddb_id?: number | null;
           summary?: string | null;
+          taken_down_at?: string | null;
           tech?: string | null;
           title: string;
           updated_at?: string;
@@ -271,15 +336,20 @@ export type Database = {
           click_count?: number;
           cover_url?: string | null;
           created_at?: string;
+          description?: string | null;
           developer?: string | null;
+          fail_streak?: number;
           featured?: boolean;
           gamepad_support?: boolean;
           hero_url?: string | null;
           id?: string;
           last_checked_at?: string | null;
+          last_ok_at?: string | null;
           link_status?: Database["public"]["Enums"]["link_status"];
           mobile_support?: boolean;
           original_title?: string;
+          page_fingerprint?: string | null;
+          page_title?: string | null;
           platform_id?: number | null;
           play_url?: string;
           published_at?: string | null;
@@ -290,6 +360,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["game_status"];
           steamgriddb_id?: number | null;
           summary?: string | null;
+          taken_down_at?: string | null;
           tech?: string | null;
           title?: string;
           updated_at?: string;
@@ -327,6 +398,59 @@ export type Database = {
           sort?: number;
         };
         Relationships: [];
+      };
+      link_checks: {
+        Row: {
+          checked_at: string;
+          details: Json | null;
+          error: string | null;
+          final_url: string | null;
+          fingerprint: string | null;
+          game_id: string;
+          http_status: number | null;
+          id: number;
+          kind: string;
+          page_title: string | null;
+          response_ms: number | null;
+          verdict: Database["public"]["Enums"]["link_status"];
+        };
+        Insert: {
+          checked_at?: string;
+          details?: Json | null;
+          error?: string | null;
+          final_url?: string | null;
+          fingerprint?: string | null;
+          game_id: string;
+          http_status?: number | null;
+          id?: never;
+          kind: string;
+          page_title?: string | null;
+          response_ms?: number | null;
+          verdict: Database["public"]["Enums"]["link_status"];
+        };
+        Update: {
+          checked_at?: string;
+          details?: Json | null;
+          error?: string | null;
+          final_url?: string | null;
+          fingerprint?: string | null;
+          game_id?: string;
+          http_status?: number | null;
+          id?: never;
+          kind?: string;
+          page_title?: string | null;
+          response_ms?: number | null;
+          verdict?: Database["public"]["Enums"]["link_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "link_checks_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       platforms: {
         Row: {
@@ -476,10 +600,10 @@ export type Database = {
       record_play: { Args: { p_game_id: string }; Returns: undefined };
     };
     Enums: {
-      candidate_source: "reddit" | "hackernews" | "github" | "user";
+      candidate_source: "reddit" | "hackernews" | "github" | "user" | "googlenews";
       candidate_status: "pending" | "approved" | "rejected" | "duplicate";
       game_status: "draft" | "published" | "hidden";
-      link_status: "unknown" | "ok" | "broken";
+      link_status: "unknown" | "ok" | "slow" | "changed" | "broken" | "taken_down";
       user_role: "user" | "admin";
     };
     CompositeTypes: {
@@ -602,10 +726,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      candidate_source: ["reddit", "hackernews", "github", "user"],
+      candidate_source: ["reddit", "hackernews", "github", "user", "googlenews"],
       candidate_status: ["pending", "approved", "rejected", "duplicate"],
       game_status: ["draft", "published", "hidden"],
-      link_status: ["unknown", "ok", "broken"],
+      link_status: ["unknown", "ok", "slow", "changed", "broken", "taken_down"],
       user_role: ["user", "admin"],
     },
   },

@@ -9,7 +9,7 @@ export const cardColumns =
 const featuredColumns = `${cardColumns}, hero_url, summary` as const;
 const genreCardColumns = `${cardColumns}, game_genres!inner(genre_id)` as const;
 const detailColumns =
-  `${cardColumns}, platform_id, play_url, source_url, developer, summary, tech, hero_url, link_status, published_at, genres:game_genres(genre:genres(id, slug, name, sort))` as const;
+  `${cardColumns}, platform_id, play_url, source_url, developer, summary, description, tech, hero_url, link_status, published_at, genres:game_genres(genre:genres(id, slug, name, sort))` as const;
 
 // Cards embed platform names and colors, so taxonomy edits must expire these too.
 function cacheCatalog() {
@@ -98,6 +98,20 @@ export async function getCatalogCounts() {
     for (const { genre_id } of game.game_genres) genres[genre_id] = (genres[genre_id] ?? 0) + 1;
   }
   return { total: data.length, platforms, genres };
+}
+
+export async function getFeedGames(limit: number) {
+  "use cache";
+  cacheCatalog();
+
+  const { data, error } = await createPublicClient()
+    .from("games")
+    .select("slug, title, original_title, summary, published_at, platform:platforms(name)")
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data;
 }
 
 export async function getPublishedSlugs() {

@@ -3,9 +3,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { isSteamGridArtwork } from "@/lib/images";
+import { submitToIndexNow } from "@/lib/indexnow";
 import { gameSchema, type GameInput } from "@/lib/schemas/game";
 import { importArtwork, removeArtwork } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
@@ -46,11 +48,14 @@ export async function saveGame(
   const { genre_ids, ...values } = parsed.data;
   const supabase = await createClient();
 
-  let previous: { cover_url: string | null; hero_url: string | null } | null = null;
+  let previous: Pick<
+    Database["public"]["Tables"]["games"]["Row"],
+    "cover_url" | "hero_url" | "slug" | "status"
+  > | null = null;
   if (id) {
     const { data } = await supabase
       .from("games")
-      .select("cover_url, hero_url")
+      .select("cover_url, hero_url, slug, status")
       .eq("id", id)
       .maybeSingle();
     if (!data) return { ok: false, message: "Unknown game." };
@@ -76,6 +81,7 @@ export async function saveGame(
     source_url: values.source_url || null,
     developer: values.developer || null,
     summary: values.summary || null,
+    description: values.description || null,
     tech: values.tech || null,
     cover_url: artwork.cover || null,
     hero_url: artwork.hero || null,
@@ -101,6 +107,11 @@ export async function saveGame(
 
   const gameId = saved.data.id;
   updateTag("games");
+  const changedPublic = [
+    values.status === "published" ? values.slug : null,
+    previous?.status === "published" ? previous.slug : null,
+  ].filter((slug) => slug !== null);
+  if (changedPublic.length) after(() => submitToIndexNow(publicPaths(changedPublic)));
   if (!id && candidateId) await approveCandidate(supabase, candidateId, gameId, admin.id);
 
   if (!(await syncGenres(supabase, gameId, genre_ids))) {
@@ -115,6 +126,11 @@ export async function saveGame(
   }
 
   return { ok: true, id: gameId, cover_url: row.cover_url ?? "", hero_url: row.hero_url ?? "" };
+}
+
+// A game going live, changing or going away also changes the home page and the New list.
+function publicPaths(slugs: string[]) {
+  return ["/", "/new", ...slugs.map((slug) => `/games/${slug}`)];
 }
 
 // The game is already saved; a failed link only leaves the candidate pending, so just log it.
@@ -169,7 +185,7 @@ export async function deleteGame(id: string): Promise<{ ok: false; message: stri
     .from("games")
     .delete()
     .eq("id", id)
-    .select("cover_url, hero_url")
+    .select("cover_url, hero_url, slug, status")
     .maybeSingle();
   if (error) {
     console.error("Deleting game failed", error);
@@ -178,6 +194,7 @@ export async function deleteGame(id: string): Promise<{ ok: false; message: stri
   if (data) await removeArtwork(supabase, [data.cover_url, data.hero_url]);
 
   updateTag("games");
+  if (data?.status === "published") after(() => submitToIndexNow(publicPaths([data.slug])));
   redirect("/admin/games");
 }
 
@@ -201,13 +218,14 @@ export async function setGamesStatus(
     .from("games")
     .update({ status: parsed.data.status })
     .in("id", parsed.data.ids)
-    .select("id");
+    .select("id, slug");
   if (error) {
     console.error("Bulk status update failed", error);
     return { ok: false, message: "Couldn't update the games." };
   }
 
   updateTag("games");
+  if (data.length) after(() => submitToIndexNow(publicPaths(data.map(({ slug }) => slug))));
   return { ok: true, count: data.length };
 }
 

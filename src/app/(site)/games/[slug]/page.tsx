@@ -10,6 +10,7 @@ import { badgesFor } from "@/components/site/game-badges";
 import { GameRow } from "@/components/site/game-row";
 import { InfoBox } from "@/components/site/info-box";
 import { JsonLd } from "@/components/site/json-ld";
+import { RichText } from "@/components/site/rich-text";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getGameBySlug, getPublishedSlugs, getSimilarGames } from "@/lib/data/games";
@@ -231,6 +232,12 @@ async function GameDetail({ params }: { params: Params }) {
                 host or link to game files.
               </InfoBox>
             </div>
+          )}
+
+          {game.description && (
+            <section aria-label="About this port" className="mt-10 max-w-2xl border-t pt-8">
+              <RichText source={game.description} />
+            </section>
           )}
         </div>
       </div>

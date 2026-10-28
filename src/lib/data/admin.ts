@@ -44,8 +44,11 @@ export async function getAdminGames({ q, status, sort }: AdminGamesFilters) {
   let query = supabase
     .from("games")
     .select(
-      "id, slug, title, original_title, status, link_status, featured, click_count, cover_url, updated_at, platform:platforms(name, color)",
+      "id, slug, title, original_title, status, link_status, featured, click_count, cover_url, updated_at, platform:platforms(name, color), link_checks(verdict)",
     )
+    // Only the latest check: it carries verdicts that never reach the public row.
+    .order("checked_at", { referencedTable: "link_checks", ascending: false })
+    .limit(1, { referencedTable: "link_checks" })
     .limit(500);
 
   if (status) query = query.eq("status", status);
@@ -65,7 +68,7 @@ export async function getAdminGame(id: string) {
   const { data, error } = await supabase
     .from("games")
     .select(
-      "id, slug, title, original_title, platform_id, play_url, source_url, developer, summary, tech, cover_url, hero_url, steamgriddb_id, requires_own_files, mobile_support, gamepad_support, featured, status, link_status, click_count, published_at, updated_at, game_genres(genre_id)",
+      "id, slug, title, original_title, platform_id, play_url, source_url, developer, summary, description, tech, cover_url, hero_url, steamgriddb_id, requires_own_files, mobile_support, gamepad_support, featured, status, link_status, click_count, published_at, updated_at, game_genres(genre_id)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -112,8 +115,11 @@ export async function getAdminCandidates(status: Enums<"candidate_status">) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("candidates")
-    .select("id, url, title, source, score, note, status, created_at, game:games(id, title)")
+    .select(
+      "id, url, title, source, score, note, status, created_at, extracted, game:games(id, title), candidate_mentions(count)",
+    )
     .eq("status", status)
+    .order("score", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(200);
   if (error) throw error;
@@ -140,8 +146,11 @@ export async function getAdminCandidate(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("candidates")
-    .select("id, url, title, note, status")
+    .select(
+      "id, url, title, note, status, source, score, extracted, candidate_mentions(source, url, title, points, seen_at)",
+    )
     .eq("id", id)
+    .order("seen_at", { referencedTable: "candidate_mentions", ascending: false })
     .maybeSingle();
   if (error) throw error;
   return data;

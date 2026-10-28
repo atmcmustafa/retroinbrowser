@@ -43,6 +43,7 @@ export const gameSchema = z.object({
     .pipe(z.union([z.literal(""), webUrl])),
   developer: z.string().trim().max(120),
   summary: z.string().trim().max(280, "Keep it under 280 characters"),
+  description: z.string().trim().max(8000, "Keep it under 8,000 characters"),
   tech: z.string().trim().max(60),
   cover_url: artworkUrl,
   hero_url: artworkUrl,

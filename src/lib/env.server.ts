@@ -6,6 +6,10 @@ const serverSchema = z.object({
   STEAMGRIDDB_API_KEY: z.string().optional(),
   TURNSTILE_SECRET_KEY: z.string().optional(),
   REVALIDATE_SECRET: z.string().min(32).optional(),
+  // Only the discovery scripts read these (docs/AUTOMATION.md).
+  AI_GATEWAY_API_KEY: z.string().optional(),
+  DISCORD_WEBHOOK_URL: z.url().optional(),
+  GITHUB_TOKEN: z.string().optional(),
 });
 
 export const serverEnv = serverSchema.parse({
@@ -13,4 +17,7 @@ export const serverEnv = serverSchema.parse({
   STEAMGRIDDB_API_KEY: process.env.STEAMGRIDDB_API_KEY,
   TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
   REVALIDATE_SECRET: process.env.REVALIDATE_SECRET,
+  AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY || undefined,
+  DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL || undefined,
+  GITHUB_TOKEN: process.env.GITHUB_TOKEN || undefined,
 });
