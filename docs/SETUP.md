@@ -19,15 +19,40 @@ cp .env.example .env.local
    ```
 4. Seed: `npx supabase db push --linked --include-seed` (ya da SQL Editor'da `supabase/seed.sql`)
 5. Storage → New bucket: `covers`, **public**
-6. Authentication → Sign In / Providers: Email varsayılan açık. GitHub ve Discord sonra (aşağıda)
-   - Varsayılan e-posta servisi sadece organizasyon ekibindeki adreslere ve düşük saatlik limitle gönderir. Admin girişi için yeterli; herkese açık girişten önce Authentication → Emails → SMTP ile kendi servisini bağla
-7. Authentication → URL Configuration: Site URL `https://retroinbrowser.com`, Redirect URLs'e `http://localhost:3000/**` ve `https://retroinbrowser.com/**`
+6. Auth ayarları (sağlayıcılar, URL'ler, CAPTCHA) `supabase/config.toml`'da tutulur ve CLI ile uygulanır; panelden değiştirme, dosya ile kayar:
+   ```bash
+   npm run db:config -- diff         # canlı proje ile farklar
+   npm run db:config -- push --yes   # config.toml'u uygular
+   ```
+   Komut `config.toml`'un `env(...)` ile okuduğu anahtarları `.env.local`'dan alır, başka bir şey geçirmez.
+   - Varsayılan e-posta servisi sadece organizasyon ekibindeki adreslere ve düşük saatlik limitle gönderir. Admin girişi için yeterli; e-postayla herkese açık girişten önce Authentication → Emails → SMTP ile kendi servisini bağla
+7. URL'ler (`config.toml` `[auth]`): Redirect URLs `http://localhost:3000/**`, `https://retroinbrowser.com/**` (uygulandı). Site URL şimdilik `http://localhost:3000`; canlıya alırken `https://retroinbrowser.com` yap ve push et
 
-## 3. OAuth uygulamaları
+## 3. OAuth (Google, Discord)
 
-- **GitHub:** Settings → Developer settings → OAuth Apps. Callback URL: `https://<project-ref>.supabase.co/auth/v1/callback`
-- **Discord:** discord.com/developers → New Application → OAuth2. Aynı callback URL
-- Client ID / Secret'ları Supabase provider ayarlarına gir
+İki uygulamada da callback URL: `https://wnumnhogqurumgeejnvb.supabase.co/auth/v1/callback`
+
+**Google** ([console.cloud.google.com](https://console.cloud.google.com/auth/overview)):
+
+1. Yeni proje → Google Auth Platform → Get started: uygulama adı `RetroInBrowser`, destek e-postası `retroinbrowser@gmail.com`, Audience **External**
+2. Data Access: `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`. Başka scope ekleme, Google incelemesi ister
+3. Clients → Create client → **Web application**
+   - Authorized JavaScript origins: `https://retroinbrowser.com`, `http://localhost:3000`
+   - Authorized redirect URIs: yukarıdaki callback URL
+4. Audience → **Publish app**. "Testing" durumunda sadece eklenen test kullanıcıları girebilir
+5. Client ID ve Client secret'ı al
+
+**Discord** ([discord.com/developers/applications](https://discord.com/developers/applications)):
+
+1. New Application → `RetroInBrowser`
+2. OAuth2 → Redirects → callback URL → Save Changes
+3. Client ID'yi kopyala; Reset Secret → Client Secret'ı kopyala
+
+**Supabase'e işlemek:** dört değeri `.env.local`'a yaz (`SUPABASE_AUTH_EXTERNAL_*`, `.env.example`), `supabase/config.toml`'da `[auth.external.google]` / `[auth.external.discord]` altında `enabled = true` yap, sonra 2.6'daki `diff` ve `push`. `/login` butonları birkaç dakika içinde çıkar; Supabase'de açık olan sağlayıcılardan okunur. Bu anahtarlar Vercel'e girmez, uygulama kullanmıyor.
+
+Aynı doğrulanmış e-postayla gelen Google/Discord hesabı mevcut kullanıcıya bağlanır (admin dahil).
+
+**CAPTCHA (e-posta girişi):** Turnstile widget'ının Hostname Management listesinde `localhost` ve `retroinbrowser.com` olduğundan emin ol, sonra `config.toml` `[auth.captcha]` → `enabled = true` ve push. Açıkken token'sız `signInWithOtp`/`signUp` istekleri reddedilir; widget çalışmıyorsa e-posta girişi de çalışmaz.
 
 ## 4. Kendini admin yap
 
@@ -50,7 +75,7 @@ where id = (select id from auth.users where email = '<senin-epostan>');
 ## 6. Vercel
 
 1. GitHub'a push et, Vercel → Import project
-2. Environment Variables: `.env.local`'daki her şey, `NEXT_PUBLIC_SITE_URL=https://retroinbrowser.com`. `REVALIDATE_SECRET` için canlıda yeni bir değer üret (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`); script'ler canlıyı yenilerken bunu kullanır
+2. Environment Variables: `.env.local`'daki her şey (`SUPABASE_AUTH_EXTERNAL_*` hariç, onları sadece CLI okur), `NEXT_PUBLIC_SITE_URL=https://retroinbrowser.com`. `REVALIDATE_SECRET` için canlıda yeni bir değer üret (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`); script'ler canlıyı yenilerken bunu kullanır
 3. Domains → retroinbrowser.com ekle. Vercel'in verdiği A/CNAME kayıtlarını Cloudflare DNS'e **DNS only** (gri bulut) olarak gir
 
 ## 7. SteamGridDB

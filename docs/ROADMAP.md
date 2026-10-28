@@ -12,14 +12,14 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] Paketler: `npm i @tanstack/react-table @marsidev/react-turnstile sharp`
 - [x] `docs/SETUP.md` adım 1-2 (Supabase link, migration, seed, `covers` bucket)
 - [x] Admin rolü (`docs/SETUP.md` adım 4)
-- [ ] GitHub ve Discord OAuth (`docs/SETUP.md` adım 3): sonraya bırakıldı, şimdilik e-posta
+- [ ] Google ve Discord OAuth (`docs/SETUP.md` adım 3): kod ve `config.toml` hazır; Google/Discord uygulamaları ve anahtarlar bekleniyor
 
 ## Faz 1 — MVP
 
 - [x] Site layout: header, footer, mobil menü
 - [x] `GameCard`, `GameRow`, `GenreGrid`, `PlatformChips` bileşenleri
 - [x] `lib/data/games.ts`: listeleme, filtre, arama, detay, benzerler (`"use cache"`)
-- [x] `/login` + `auth/callback` (e-posta; GitHub/Discord sonra)
+- [x] `/login` + `auth/callback` (e-posta, Google, Discord)
 - [x] Admin layout + `/admin/games` tablo ve form
 - [x] SteamGridDB kapak arama + Storage'a yükleme
 - [x] `/admin/taxonomy`
@@ -33,6 +33,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] `/about`, `/dmca`, 404
 - [x] `sitemap.ts`, `robots.ts`, OG görselleri, metadata
 - [x] İletişim adresi: `retroinbrowser@gmail.com` (`src/lib/site.ts` → /about, /dmca, footer)
+- [x] Güvenlik taraması ve sıkılaştırma (28 Ekim): migration `security_hardening`, HTTP header'ları/CSP, HttpOnly auth cookie'leri, tıklama tekilleştirme, `next/image` kısıtı
 - [ ] Vercel + Cloudflare ile canlıya alma (`docs/SETUP.md` 5-6), sonra Cloudflare kurallarını gözden geçir
 
 ## Faz 2 — Otomasyon (detay: `docs/AUTOMATION.md`)
@@ -52,8 +53,8 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 
 ## Faz 3 — Topluluk
 
-- [ ] Herkese açık giriş: Supabase'e custom SMTP, Attack Protection'da CAPTCHA (Turnstile) ve `/login` formuna token
-- [ ] Yorumlar
-- [ ] Puanlama
+- [ ] Herkese açık e-posta girişi: Supabase'e custom SMTP. CAPTCHA'nın form tarafı hazır (`/login` token gönderiyor); `config.toml` `[auth.captcha]` açılmalı
+- [ ] Yorumlar (yazma yetkisi `security_hardening` ile kapalı; açarken rate limit trigger'ı ekle)
+- [ ] Puanlama (yazma yetkisi kapalı, yorumlarla aynı not)
 - [ ] "Works for me" raporları (`game_reports`) ve kartta cihaz bazlı özet
 - [ ] `/takedowns` sayfası (`link_checks` geçmişinden)

@@ -29,9 +29,11 @@ export async function verifyTurnstile(token: string, action: string, remoteip?: 
       console.warn("Turnstile rejected a token", result["error-codes"]);
       return false;
     }
-    // Test keys report "example.com" and no action; real widgets report both.
+    // Cloudflare's test secrets (1x000…AA) report "example.com" and no action; real widgets
+    // report both, and only our own hostname counts for them.
     const expectedHost = new URL(env.NEXT_PUBLIC_SITE_URL).hostname;
-    if (result.hostname !== "example.com" && result.hostname !== expectedHost) return false;
+    const testHost = /^[123]x0+AA$/.test(secret) && result.hostname === "example.com";
+    if (result.hostname !== expectedHost && !testHost) return false;
     if (result.action && result.action !== action) return false;
     return true;
   } catch (error) {

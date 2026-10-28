@@ -123,6 +123,32 @@ export type Database = {
           },
         ];
       };
+      game_click_visitors: {
+        Row: {
+          day: string;
+          game_id: string;
+          visitor: string;
+        };
+        Insert: {
+          day?: string;
+          game_id: string;
+          visitor: string;
+        };
+        Update: {
+          day?: string;
+          game_id?: string;
+          visitor?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "game_click_visitors_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       game_genres: {
         Row: {
           game_id: string;
@@ -376,7 +402,10 @@ export type Database = {
       };
     };
     Functions: {
-      increment_click: { Args: { game_slug: string }; Returns: undefined };
+      increment_click: {
+        Args: { game_slug: string; visitor: string };
+        Returns: undefined;
+      };
       is_admin: { Args: never; Returns: boolean };
     };
     Enums: {

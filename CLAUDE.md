@@ -36,7 +36,11 @@ Bir işi bitirmeden önce `typecheck` ve `lint` temiz olmalı.
 - Varsayılan Server Component. `"use client"` sadece etkileşim gereken yaprak bileşenlerde.
 - Okuma: `src/lib/data/*`. Yazma: `src/lib/actions/*` server action'ları. Her action girdiyi zod ile doğrular.
 - Admin action ve sayfaları `requireAdmin()` ile başlar; `proxy.ts` tek başına yeterli sayılmaz.
-- `createAdminClient()` RLS'i aşar: sadece `/submit` (Turnstile sonrası) ve `scripts/` içinde.
+- `createAdminClient()` RLS'i aşar: sadece `/submit` (Turnstile sonrası), `/go` (`increment_click` anon'a kapalı) ve `scripts/` içinde.
+- Auth cookie'leri HttpOnly: tarayıcıda Supabase client yok, oturumlu her çağrı server'da.
+- Yeni fonksiyonlar varsayılan olarak kapalı (sadece owner ve service_role). RLS'te kullanılacak ya da herkese açık RPC olacaksa migration'da `grant execute ... to anon, authenticated`. Anon'un tablolara yazma yetkisi yok (yeni tablolar dahil).
+- Yeni bir dış script, iframe ya da görsel kaynağı ekleyince `next.config.ts`'teki CSP'yi güncelle.
+- Supabase Auth ayarları `supabase/config.toml`'da: değiştirince `npm run db:config -- diff`, sonra `-- push --yes`. Panelden değiştirme, dosya ile kayar.
 - Herkese açık veri `"use cache"` + `cacheTag`; admin değişikliğinden sonra server action'da `updateTag`. Script/SQL ile veri değiştiren her iş sonunda `/api/revalidate`'i çağırır (`scripts/lib/revalidate.ts`), yoksa site 1 saate kadar eski veriyi gösterir.
 - Filtre/arama durumu URL'de (nuqs), local state'te değil.
 - Şema değişikliği sadece yeni migration dosyasıyla; eski migration'ı düzenleme. Sonra `npm run db:types`.

@@ -18,7 +18,7 @@ Site arayüzü İngilizce (kitle global). Kod, commit ve dokümanlar serbest.
 | `/platforms/[slug]`, `/genres/[slug]` | Filtrelenmiş grid                                                                                                                                                    |
 | `/submit`                             | Oyun öner formu: URL + not. Turnstile doğrulaması, sonuç `candidates` tablosuna `source=user`                                                                        |
 | `/about`, `/dmca`                     | Kısa metin, kaldırma talebi iletişimi                                                                                                                                |
-| `/login`                              | E-posta ile giriş. GitHub ve Discord sonra eklenecek                                                                                                                 |
+| `/login`                              | E-posta (magic link), Google ve Discord ile giriş                                                                                                                    |
 | Arama                                 | Üst menüde ⌘K / Ctrl+K komut paleti                                                                                                                                  |
 | SEO                                   | `sitemap.ts`, `robots.ts`, oyun sayfaları için dinamik OG görseli ve metadata                                                                                        |
 

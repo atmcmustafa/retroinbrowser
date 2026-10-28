@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { normalizeUrl, urlKey } from "@/lib/normalize-url";
+import { clientIp } from "@/lib/request-ip";
 import { createAdminClient } from "@/lib/supabase/server";
 import { verifyTurnstile } from "@/lib/turnstile";
 
@@ -48,7 +49,7 @@ export async function submitGame(_prev: SubmitState, formData: FormData): Promis
     return { status: "invalid", fieldErrors, values };
   }
 
-  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim();
+  const ip = clientIp(await headers());
   if (!(await verifyTurnstile(parsed.data.token, "submit", ip))) {
     return { status: "error", message: "The check expired or failed. Try again.", values };
   }
