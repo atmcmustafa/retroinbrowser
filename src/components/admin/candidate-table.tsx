@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { setCandidateStatus, type ReviewStatus } from "@/lib/actions/candidates";
 import type { AdminCandidateRow } from "@/lib/data/admin";
+import { parseExtracted } from "@/lib/schemas/extraction";
 import type { Enums } from "@/types/database";
 
 const sourceLabels: Record<Enums<"candidate_source">, string> = {
@@ -24,7 +25,26 @@ const sourceLabels: Record<Enums<"candidate_source">, string> = {
   hackernews: "Hacker News",
   reddit: "Reddit",
   github: "GitHub",
+  googlenews: "Google News",
 };
+
+function ExtractedLine({ candidate }: { candidate: AdminCandidateRow }) {
+  const extracted = parseExtracted(candidate.extracted);
+  if (!extracted) return null;
+  if (!extracted.is_port) {
+    return <p className="mt-1 text-xs text-muted-foreground">Not a port: {extracted.reason}</p>;
+  }
+  const name = [extracted.title, extracted.original_title].filter(Boolean).join(" · ");
+  return (
+    <p className="mt-1 text-xs">
+      {name || "Port"}
+      <span className="text-muted-foreground tabular-nums">
+        {" "}
+        · {Math.round(extracted.confidence * 100)}% sure
+      </span>
+    </p>
+  );
+}
 
 const doneLabels: Record<ReviewStatus, string> = {
   rejected: "Rejected",
@@ -148,9 +168,9 @@ export function CandidatesTable({
                 />
               </TableHead>
             )}
-            <TableHead>Submission</TableHead>
+            <TableHead>Candidate</TableHead>
             <TableHead>Source</TableHead>
-            <TableHead className="text-right">Submitted</TableHead>
+            <TableHead className="text-right">Found</TableHead>
             <TableHead className="text-right">
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -189,12 +209,18 @@ export function CandidatesTable({
                     &ldquo;{candidate.note}&rdquo;
                   </p>
                 )}
+                <ExtractedLine candidate={candidate} />
               </TableCell>
               <TableCell className="align-top">
                 {sourceLabels[candidate.source]}
                 {candidate.score !== null && (
                   <span className="ml-1.5 text-xs text-muted-foreground tabular-nums">
                     {candidate.score.toFixed(1)}
+                  </span>
+                )}
+                {(candidate.candidate_mentions[0]?.count ?? 0) > 1 && (
+                  <span className="block text-xs text-muted-foreground tabular-nums">
+                    {candidate.candidate_mentions[0].count} mentions
                   </span>
                 )}
               </TableCell>

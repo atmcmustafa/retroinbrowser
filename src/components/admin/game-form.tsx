@@ -37,43 +37,63 @@ import { saveGame } from "@/lib/actions/games";
 import type { AdminGame } from "@/lib/data/admin";
 import type { getGenres, getPlatforms } from "@/lib/data/taxonomy";
 import type { Artwork, ArtworkKind } from "@/lib/images";
+import type { Extracted } from "@/lib/schemas/extraction";
 import { gameSchema, gameStatusLabels, type GameInput } from "@/lib/schemas/game";
 import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
 import { Constants } from "@/types/database";
 
-type Candidate = { id: string; url: string; title: string | null };
+type Candidate = { id: string; url: string; title: string | null; extracted: Extracted | null };
+
+type Platforms = Awaited<ReturnType<typeof getPlatforms>>;
+type Genres = Awaited<ReturnType<typeof getGenres>>;
 
 type Props = {
   game?: AdminGame;
-  // Prefills a new game from a submission; saving approves the candidate.
+  // Prefills a new game from a submission or a discovered port; saving approves the candidate.
   candidate?: Candidate;
-  platforms: Awaited<ReturnType<typeof getPlatforms>>;
-  genres: Awaited<ReturnType<typeof getGenres>>;
+  platforms: Platforms;
+  genres: Genres;
 };
 
 const artworkField = { cover: "cover_url", hero: "hero_url" } as const;
 
-function defaultsFor(game?: AdminGame, candidate?: Candidate): DefaultValues<GameInput> {
+// "Diablo Web" already names the game; "OpenLara" doesn't, so its slug leads with "tomb-raider".
+function candidateSlug(title: string, original: string | null) {
+  const named = !original || title.toLowerCase().includes(original.toLowerCase());
+  return slugify(named ? title : `${original} ${title}`).slice(0, 80);
+}
+
+function defaultsFor(
+  game: AdminGame | undefined,
+  candidate: Candidate | undefined,
+  platforms: Platforms,
+  genres: Genres,
+): DefaultValues<GameInput> {
+  const found = candidate?.extracted?.is_port ? candidate.extracted : null;
   return {
-    title: game?.title ?? "",
-    slug: game?.slug ?? "",
-    original_title: game?.original_title ?? candidate?.title ?? "",
-    platform_id: game?.platform_id ?? undefined,
-    genre_ids: game?.game_genres.map(({ genre_id }) => genre_id) ?? [],
-    play_url: game?.play_url ?? candidate?.url ?? "",
-    source_url: game?.source_url ?? "",
-    developer: game?.developer ?? "",
-    summary: game?.summary ?? "",
-    tech: game?.tech ?? "",
-    cover_url: game?.cover_url ?? "",
-    hero_url: game?.hero_url ?? "",
-    steamgriddb_id: game?.steamgriddb_id ?? null,
-    requires_own_files: game?.requires_own_files ?? false,
-    mobile_support: game?.mobile_support ?? false,
-    gamepad_support: game?.gamepad_support ?? false,
+    title: game?.title ?? found?.title ?? "",
+    slug: game?.slug ?? (found?.title ? candidateSlug(found.title, found.original_title) : ""),
+    original_title: game?.original_title ?? found?.original_title ?? candidate?.title ?? "",
+    platform_id:
+      game?.platform_id ?? platforms.find(({ slug }) => slug === found?.platform_slug)?.id,
+    genre_ids:
+      game?.game_genres.map(({ genre_id }) => genre_id) ??
+      genres.filter(({ slug }) => found?.genre_slugs.includes(slug)).map(({ id }) => id),
+    play_url: game?.play_url ?? found?.play_url ?? candidate?.url ?? "",
+    source_url: game?.source_url ?? found?.source_url ?? "",
+    developer: game?.developer ?? found?.developer ?? "",
+    summary: game?.summary ?? found?.summary?.slice(0, 280) ?? "",
+    description: game?.description ?? found?.description?.slice(0, 8000) ?? "",
+    tech: game?.tech ?? found?.tech?.slice(0, 60) ?? "",
+    cover_url: game?.cover_url ?? found?.artwork?.cover_url ?? "",
+    hero_url: game?.hero_url ?? found?.artwork?.hero_url ?? "",
+    steamgriddb_id: game?.steamgriddb_id ?? found?.artwork?.steamgriddb_id ?? null,
+    requires_own_files: game?.requires_own_files ?? found?.requires_own_files ?? false,
+    mobile_support: game?.mobile_support ?? found?.mobile_support ?? false,
+    gamepad_support: game?.gamepad_support ?? found?.gamepad_support ?? false,
     featured: game?.featured ?? false,
-    status: game?.status ?? "draft",
+    status: game?.status ?? (found ? "published" : "draft"),
   };
 }
 
@@ -81,12 +101,18 @@ export function GameForm({ game, candidate, platforms, genres }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [slugEdited, setSlugEdited] = useState(Boolean(game));
-  // Thumbnails for picked SteamGridDB images; the full image is imported on save.
-  const [previews, setPreviews] = useState<Partial<Record<ArtworkKind, string>>>({});
+  // Picked SteamGridDB images (and ones the extractor found); the full image is imported on save.
+  const [previews, setPreviews] = useState<Partial<Record<ArtworkKind, string>>>(() => {
+    const artwork = candidate?.extracted?.is_port ? candidate.extracted.artwork : null;
+    return {
+      cover: artwork?.cover_url ?? undefined,
+      hero: artwork?.hero_url ?? undefined,
+    };
+  });
 
   const form = useForm<GameInput>({
     resolver: zodResolver(gameSchema),
-    defaultValues: defaultsFor(game, candidate),
+    defaultValues: defaultsFor(game, candidate, platforms, genres),
   });
   const { control } = form;
   const [slug, originalTitle, steamGridId, coverUrl, heroUrl] = useWatch({
@@ -271,6 +297,33 @@ export function GameForm({ game, candidate, platforms, genres }: Props) {
                   <Textarea id="summary" rows={3} {...field} aria-invalid={fieldState.invalid} />
                   <FieldDescription>
                     One or two sentences. {field.value.length}/280
+                  </FieldDescription>
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </FieldSet>
+
+        <FieldSet>
+          <FieldLegend>Game page</FieldLegend>
+          <FieldGroup>
+            <Controller
+              name="description"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="description">Description</FieldLabel>
+                  <Textarea
+                    id="description"
+                    rows={16}
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                    className="font-mono text-sm"
+                  />
+                  <FieldDescription>
+                    A blank line starts a paragraph. ## Heading, - list item, **bold**, `file.ext`,
+                    [text](https://…). {field.value.length}/8000
                   </FieldDescription>
                   <FieldError errors={[fieldState.error]} />
                 </Field>

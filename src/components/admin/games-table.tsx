@@ -36,6 +36,27 @@ const statusDot: Record<Status, string> = {
   hidden: "border border-muted-foreground",
 };
 
+// Link check results worth a look (scripts/check-links.ts). Only "broken" reaches the game row
+// and the site; the rest come from the latest check.
+const linkAlerts: Partial<Record<Enums<"link_status">, string>> = {
+  broken: "Broken link",
+  changed: "Page changed",
+  taken_down: "Takedown?",
+  slow: "Slow",
+};
+
+function LinkAlert({ game }: { game: AdminGameRow }) {
+  const latest = game.link_checks[0]?.verdict;
+  const alert = game.link_status === "broken" ? "broken" : latest;
+  const label = alert && linkAlerts[alert];
+  if (!label) return null;
+  return (
+    <Badge variant={alert === "slow" ? "outline" : "destructive"} className="ml-2">
+      {label}
+    </Badge>
+  );
+}
+
 const bulkActions: { status: Status; label: string; done: string }[] = [
   { status: "published", label: "Publish", done: "Published" },
   { status: "draft", label: "Move to draft", done: "Moved to draft" },
@@ -194,11 +215,7 @@ export function GamesTable({
                   <span aria-hidden className={cn("size-2 rounded-full", statusDot[game.status])} />
                   {gameStatusLabels[game.status]}
                 </span>
-                {game.link_status === "broken" && (
-                  <Badge variant="destructive" className="ml-2">
-                    Broken link
-                  </Badge>
-                )}
+                <LinkAlert game={game} />
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 {game.click_count.toLocaleString("en-US")}

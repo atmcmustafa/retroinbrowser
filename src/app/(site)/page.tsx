@@ -19,7 +19,12 @@ import { getGenres, getPlatforms } from "@/lib/data/taxonomy";
 import { env } from "@/lib/env";
 import { siteDescription, siteName } from "@/lib/site";
 
-export const metadata: Metadata = { alternates: { canonical: "/" } };
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": [{ url: "/feed.xml", title: "New games" }] },
+  },
+};
 
 const ROW_SIZE = 7;
 

@@ -4,6 +4,17 @@ Faz 2'nin tasarımı. Amaç: viral bir portu aynı gün listeye almak ve kapanan
 
 > **İnceleme notu (27 Ekim):** Aşağıdaki planın iki yeri bu hedeflerle çelişiyor: günde tek keşif (bkz. 1. bölüm) ve günde tek kontrol + `fail_streak ≥ 2` (bkz. 4. bölüm). Notlar ilgili bölümlerde.
 
+## Uygulama durumu (28 Ekim)
+
+Keşif, bilgi çıkarma ve link kontrolü yazıldı; plandan farkları:
+
+- Zamanlama: `discover.yml` 6 saatte bir (`collect` + `extract`), `check-links.yml` her gün 05:30 UTC. İkisi de `workflow_dispatch` ile elle tetiklenir. GitHub, public repoda 60 gün commit olmazsa zamanlanmış workflow'ları kapatır.
+- Kaynaklar: Google News sarmalayıcı linki batchexecute ile çözülüyor; mention sarmalayıcı URL ile tutulduğu için bir haber bir kez çözülür. Reddit uygulama/anahtar yerine public RSS: hızlı isteklerde 429 veriyor, o feed atlanır. Başlık filtresi (`looksLikePort`) port kelimesi geçmeyenleri aday yapmaz.
+- LLM: Claude Haiku 5.5, Vercel AI Gateway üzerinden (`@anthropic-ai/sdk`, `messages.parse` + zod). Anahtar `AI_GATEWAY_API_KEY` (aylık 5 $ limitli); `LLM_PROVIDER`/`LLM_API_KEY` yok. Aday başına yaklaşık 0,001 $. Ücretsiz krediler Vercel hesabında kart olunca açılıyor; yoksa `extract` 403 alır, deneme hakkı harcamadan durur.
+- `extract` açıklama taslağı da yazar ve SteamGridDB'den kapak/hero seçer (orijinal çıkış yılına uyan sonucu tercih eder). Haber ya da repo üzerinden gelen aday, bulunan port URL'sine taşınır; o URL'de oyun ya da başka aday varsa `duplicate` olur, mention'ları oraya geçer.
+- `check-links`: herkese açık satıra (anon `games`'in her sütununu okuyabiliyor) sadece `ok`/`broken` yazılır; `slow`, `changed`, `taken_down` `link_checks.verdict`'te kalır, admin tablosu son kontrolü rozet olarak gösterir. Başarısız linkler 5 dk sonra tekrar denenir, ikisi de başarısızsa aynı gün `broken`. Bot doğrulama sayfası (Cloudflare) `unknown` sayılır, karar verilmez.
+- Henüz yok: haftalık smoke testi, `trend_score` ve Trending satırı, `/takedowns`, admin'de takedown onayı. `link_checks` büyüyünce eski satırları budamak gerekecek (Free plan 500 MB).
+
 ## Rakip analizi (Ekim 2026)
 
 |           | portedgames.com                                 | recompiledgames.com                              |

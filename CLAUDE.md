@@ -26,9 +26,13 @@ npm run format
 npm run db:new <ad>  # yeni migration dosyası
 npm run db:push      # migration'ları Supabase'e uygula
 npm run db:types     # src/types/database.ts'i yeniden üret
+npm run collect      # keşif: kaynaklardan aday topla (--days 30 geriye doldurur)
+npm run extract      # adayların bilgilerini AI Gateway (Claude Haiku) ile çıkar
+npm run check-links  # yayındaki linkleri kontrol et (--dry-run yazmaz)
+npm run test:scripts # scripts/ birim testleri
 ```
 
-Bir işi bitirmeden önce `typecheck` ve `lint` temiz olmalı.
+Bir işi bitirmeden önce `typecheck` ve `lint` temiz olmalı; `scripts/lib`'e dokunduysan `test:scripts` de.
 
 ## Kod kuralları
 

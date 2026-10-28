@@ -20,9 +20,9 @@ const statusLabels: Record<Enums<"candidate_status">, string> = {
 };
 
 const emptyText: Record<Enums<"candidate_status">, string> = {
-  pending: "Nothing to review. New submissions show up here.",
-  approved: "No approved submissions yet.",
-  rejected: "No rejected submissions.",
+  pending: "Nothing to review. Submissions and discovered ports show up here.",
+  approved: "No approved candidates yet.",
+  rejected: "No rejected candidates.",
   duplicate: "No duplicates.",
 };
 

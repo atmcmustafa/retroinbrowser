@@ -14,9 +14,15 @@
     "db:push": "supabase db push",
     "db:new": "supabase migration new",
     "db:config": "tsx scripts/supabase-config.ts",
-    "artwork": "tsx --conditions=react-server --env-file=.env.local scripts/fill-artwork.ts"
+    "artwork": "tsx --conditions=react-server --env-file=.env.local scripts/fill-artwork.ts",
+    "collect": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/collect.ts",
+    "extract": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/extract.ts",
+    "check-links": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/check-links.ts",
+    "indexnow": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/indexnow.ts",
+    "test:scripts": "tsx --test \"scripts/**/*.test.ts\""
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
     "@hookform/resolvers": "^6.0.1",
     "@marsidev/react-turnstile": "^1.6.3",
     "@supabase/ssr": "^0.12.7",
