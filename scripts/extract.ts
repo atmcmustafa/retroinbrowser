@@ -1,5 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { env } from "@/lib/env";
 import { serverEnv } from "@/lib/env.server";
@@ -8,14 +6,27 @@ import type { Extracted } from "@/lib/schemas/extraction";
 import { getSteamGridArtwork, searchSteamGridGames } from "@/lib/steamgriddb";
 import type { Json, TablesUpdate } from "@/types/database";
 import { createScriptClient } from "./lib/db";
+import { GeminiError, generateJson } from "./lib/gemini";
 import { USER_AGENT, fetchPage, htmlToText, metaContent, pageLinks, pageTitle } from "./lib/http";
 import { notifyDiscord } from "./lib/notify";
 
-// docs/AUTOMATION.md: a cheap model reads each new candidate; an admin approves every game.
-const MODEL = "anthropic/claude-haiku-5.5";
+// docs/AUTOMATION.md: a free-tier model reads each new candidate; an admin approves every game.
+// `npm run extract -- --limit 150` works through a backlog.
+// Free-tier models, best first. gemini-2.5-flash is closed to new projects.
+const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];
 const PER_RUN = 20;
 const MAX_ATTEMPTS = 3;
 const AUTO_REJECT_CONFIDENCE = 0.8;
+// The free tier allows roughly ten requests a minute per project.
+const MIN_GAP_MS = 6_500;
+
+function perRun() {
+  const flag = process.argv.indexOf("--limit");
+  const limit = flag === -1 ? NaN : Number(process.argv[flag + 1]);
+  return Number.isInteger(limit) && limit > 0 ? limit : PER_RUN;
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const SYSTEM = `You review web pages for RetroInBrowser, a directory of classic games that people play in a web browser through ports: source ports, decompilations, static recompilations, engine reimplementations and official web releases. The directory links to each port's own site.
 
@@ -36,7 +47,7 @@ function outputSchema(platforms: string[], genres: string[]) {
     reason: z.string().describe("One short sentence explaining is_port"),
     title: z.string().nullable().describe("The port's own name, e.g. OpenLara"),
     original_title: z.string().nullable().describe("The original game's title, e.g. Tomb Raider"),
-    original_year: z.number().int().nullable(),
+    original_year: z.number().nullable(),
     platform_slug: z
       .enum(platforms as [string, ...string[]])
       .nullable()
@@ -58,6 +69,26 @@ function outputSchema(platforms: string[], genres: string[]) {
 }
 
 type Output = z.infer<ReturnType<typeof outputSchema>>;
+
+let lastCall = 0;
+
+// Spaced out for the free tier's per-minute limit; one 429 waits as told and tries again.
+async function ask(apiKey: string, schema: ReturnType<typeof outputSchema>, input: string) {
+  for (let attempt = 0; ; attempt++) {
+    const wait = lastCall + MIN_GAP_MS - Date.now();
+    if (wait > 0) await sleep(wait);
+    lastCall = Date.now();
+    try {
+      return await generateJson({ apiKey, models: MODELS, system: SYSTEM, input, schema });
+    } catch (error) {
+      if (error instanceof GeminiError && error.status === 429 && attempt === 0) {
+        await sleep(error.retryAfterMs ?? 60_000);
+        continue;
+      }
+      throw error;
+    }
+  }
+}
 
 function message(error: unknown) {
   return error instanceof Error ? error.message : String(error);
@@ -87,7 +118,10 @@ async function githubReadme(url: string | null) {
 async function findArtwork(title: string, year: number | null) {
   if (!serverEnv.STEAMGRIDDB_API_KEY) return null;
   const results = await searchSteamGridGames(title);
-  const game = results.slice(0, 5).find((result) => year && result.year === year) ?? results[0];
+  const released = year === null ? null : Math.round(year);
+  const game =
+    results.slice(0, 5).find((result) => released !== null && result.year === released) ??
+    results[0];
   if (!game) return null;
   const [covers, heroes] = await Promise.all([
     getSteamGridArtwork(game.id, "cover"),
@@ -104,14 +138,11 @@ async function findArtwork(title: string, year: number | null) {
 }
 
 async function main() {
-  if (!serverEnv.AI_GATEWAY_API_KEY) {
-    console.log("AI_GATEWAY_API_KEY is not set; skipping extraction.");
+  const apiKey = serverEnv.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.log("GEMINI_API_KEY is not set; skipping extraction.");
     return;
   }
-  const llm = new Anthropic({
-    apiKey: serverEnv.AI_GATEWAY_API_KEY,
-    baseURL: "https://ai-gateway.vercel.sh",
-  });
   const db = createScriptClient();
 
   const [queue, platforms, genres, games, candidates] = await Promise.all([
@@ -123,7 +154,7 @@ async function main() {
       .lt("extract_attempts", MAX_ATTEMPTS)
       .order("score", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: true })
-      .limit(PER_RUN),
+      .limit(perRun()),
     db.from("platforms").select("slug").order("sort"),
     db.from("genres").select("slug").order("sort"),
     db.from("games").select("id, play_url"),
@@ -157,15 +188,19 @@ async function main() {
   for (const candidate of queue.data) {
     const attempts = candidate.extract_attempts + 1;
     let output: Output;
+    let model: string;
     try {
-      const page = await fetchPage(candidate.url);
-      if (page.status >= 400) throw new Error(`page answered ${page.status}`);
+      // Many news sites refuse bots (403); the headlines alone still settle most of those.
+      const page = await fetchPage(candidate.url).catch(() => null);
+      const readable = page && page.status < 400 ? page : null;
       const readme =
         (await githubReadme(candidate.url).catch(() => null)) ??
         (await githubReadme(candidate.source_ref).catch(() => null));
-      const links = pageLinks(page.html, page.url)
-        .map(({ url, text }) => `- ${text || "(no text)"}: ${url}`)
-        .join("\n");
+      const links = readable
+        ? pageLinks(readable.html, readable.url)
+            .map(({ url, text }) => `- ${text || "(no text)"}: ${url}`)
+            .join("\n")
+        : "";
       const seenAs = candidate.candidate_mentions
         .map(({ title }) => title)
         .filter(Boolean)
@@ -177,31 +212,32 @@ async function main() {
         `<candidate url="${candidate.url}">`,
         `Mentioned as:\n${seenAs || `- ${candidate.title ?? "(no title)"}`}`,
         "</candidate>",
-        `<page url="${page.url}">`,
-        `Title: ${pageTitle(page.html) ?? ""}`,
-        `Description: ${metaContent(page.html, "og:description") ?? metaContent(page.html, "description") ?? ""}`,
-        htmlToText(page.html).slice(0, 15_000),
-        "</page>",
-        `<links>\n${links}\n</links>`,
+        ...(readable
+          ? [
+              `<page url="${readable.url}">`,
+              `Title: ${pageTitle(readable.html) ?? ""}`,
+              `Description: ${metaContent(readable.html, "og:description") ?? metaContent(readable.html, "description") ?? ""}`,
+              htmlToText(readable.html).slice(0, 15_000),
+              "</page>",
+              `<links>\n${links}\n</links>`,
+            ]
+          : [
+              `<page url="${candidate.url}" unavailable="${page ? `HTTP ${page.status}` : "no response"}">`,
+              "The page could not be read. Judge from the mentions alone: is_port is true when they say a specific game became playable in a browser, false when they are about something else. Leave play_url, source_url, summary and description null, and keep confidence at 0.6 or lower unless the mentions are clearly not about a browser port.",
+              "</page>",
+            ]),
         readme ? `<readme>\n${readme}\n</readme>` : "",
       ].join("\n");
 
-      const response = await llm.messages.parse({
-        model: MODEL,
-        max_tokens: 16000,
-        system: SYSTEM,
-        output_config: { effort: "low", format: zodOutputFormat(schema) },
-        messages: [{ role: "user", content: input }],
-      });
-      if (response.stop_reason === "refusal" || !response.parsed_output) {
-        throw new Error(`no usable output (${response.stop_reason})`);
-      }
-      output = response.parsed_output;
+      ({ model, output } = await ask(apiKey, schema, input));
     } catch (error) {
-      // No credits or a bad key would fail every candidate the same way; stop without
-      // spending their attempts.
-      if (error instanceof Anthropic.APIError && [401, 402, 403].includes(error.status ?? 0)) {
-        console.error(`AI Gateway refused the request (${error.status}): ${error.message}`);
+      // A bad key, a rejected request shape, a used-up quota or every model being busy fails
+      // every candidate the same way; stop without spending their attempts.
+      if (
+        error instanceof GeminiError &&
+        [400, 401, 403, 429, 500, 503, 504].includes(error.status)
+      ) {
+        console.error(`Gemini refused the request (${error.status}): ${error.message}`);
         break;
       }
       console.warn(`Extraction failed for ${candidate.url}: ${message(error)}`);
@@ -235,7 +271,7 @@ async function main() {
       mobile_support: output.mobile_support,
       gamepad_support: output.gamepad_support,
       artwork,
-      model: MODEL,
+      model,
     };
 
     const now = new Date().toISOString();

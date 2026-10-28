@@ -111,6 +111,19 @@ export type AdminTaxonomy = Awaited<ReturnType<typeof getAdminTaxonomy>>;
 export type AdminPlatform = AdminTaxonomy["platforms"][number];
 export type AdminGenre = AdminTaxonomy["genres"][number];
 
+// Keyed by lowercased original title: a candidate for a game already in the catalog is
+// usually the same port found again, though a second port of the same game can be real.
+export async function getListedGames() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("games").select("id, title, original_title");
+  if (error) throw error;
+  return Object.fromEntries(
+    data.map(({ id, title, original_title }) => [original_title.toLowerCase(), { id, title }]),
+  );
+}
+
+export type ListedGames = Awaited<ReturnType<typeof getListedGames>>;
+
 export async function getAdminCandidates(status: Enums<"candidate_status">) {
   const supabase = await createClient();
   const { data, error } = await supabase
