@@ -52,7 +52,7 @@ cp .env.example .env.local
 
 Aynı doğrulanmış e-postayla gelen Google/Discord hesabı mevcut kullanıcıya bağlanır (admin dahil).
 
-**CAPTCHA (e-posta girişi):** Turnstile widget'ının Hostname Management listesinde `localhost` ve `retroinbrowser.com` olduğundan emin ol, sonra `config.toml` `[auth.captcha]` → `enabled = true` ve push. Açıkken token'sız `signInWithOtp`/`signUp` istekleri reddedilir; widget çalışmıyorsa e-posta girişi de çalışmaz.
+**CAPTCHA (e-posta girişi):** `config.toml` `[auth.captcha]` → `enabled = true` ve push. Supabase token'ı `SUPABASE_AUTH_CAPTCHA_SECRET` (gerçek widget'ın secret'ı) ile doğrular. Açıkken token'sız ya da test widget'ından gelen `signInWithOtp`/`signUp` istekleri reddedilir: localde e-posta girişi çalışmaz, localde Google/Discord ile gir. Google/Discord girişi admin hesabına bağlanmadan açma.
 
 ## 4. Kendini admin yap
 
@@ -67,15 +67,16 @@ where id = (select id from auth.users where email = '<senin-epostan>');
 
 1. Add a site → retroinbrowser.com, Free plan
 2. Domaini aldığın yerde nameserver'ları Cloudflare'in verdikleriyle değiştir
-3. Turnstile → Add widget (hostname: retroinbrowser.com, localhost). Site key ve secret key'i env'e yaz
+3. Turnstile → Add widget (hostname: retroinbrowser.com). Gerçek anahtarlar Vercel'e (`.env.vercel`), secret ayrıca `.env.local`'da `SUPABASE_AUTH_CAPTCHA_SECRET` olarak
+   - Production widget'ı `localhost` kabul etmiyor. `.env.local`'da Cloudflare'in test anahtarları: site `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA`. Test secret'ı sadece test widget'ının sahte token'ını kabul eder, `src/lib/turnstile.ts` de `example.com` hostname'ini sadece test secret'ıyla geçirir
    - Widget görünmüyor ve konsolda `[Cloudflare Turnstile] Error: 110200` varsa o hostname widget'ın listesinde yok: Turnstile → widget → Hostname Management'e ekle
-   - Otomatik testlerde Cloudflare'in test anahtarları: site `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA` (her zaman geçer)
 4. İletişim adresi `retroinbrowser@gmail.com` (`src/lib/site.ts`). Domain adresi istenirse Email Routing ile `contact@retroinbrowser.com` → bu adres yönlendirilip `contactEmail` değiştirilebilir
 
 ## 6. Vercel
 
 1. GitHub'a push et, Vercel → Import project
-2. Environment Variables: `.env.local`'daki her şey (`SUPABASE_AUTH_EXTERNAL_*` hariç, onları sadece CLI okur), `NEXT_PUBLIC_SITE_URL=https://retroinbrowser.com`. `REVALIDATE_SECRET` için canlıda yeni bir değer üret (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`); script'ler canlıyı yenilerken bunu kullanır
+2. Environment Variables: `.env.vercel`'in içeriğini olduğu gibi yapıştır (Vercel .env metnini kendisi böler). Dosya gitignore'da; canlı değerler bunlar: `NEXT_PUBLIC_SITE_URL=https://retroinbrowser.com`, gerçek Turnstile anahtarları, localdekinden farklı bir `REVALIDATE_SECRET` (script'ler canlıyı yenilerken bunu kullanır). `SUPABASE_AUTH_*` Vercel'e girmez, onları sadece CLI okur
+   - Bölge `vercel.json`'da (`fra1`, Supabase Frankfurt'ta), panelden ayarlamak gerekmez
 3. Domains → retroinbrowser.com ekle. Vercel'in verdiği A/CNAME kayıtlarını Cloudflare DNS'e **DNS only** (gri bulut) olarak gir
 
 ## 7. SteamGridDB
