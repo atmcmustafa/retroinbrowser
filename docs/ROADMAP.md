@@ -12,7 +12,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] Paketler: `npm i @tanstack/react-table @marsidev/react-turnstile sharp`
 - [x] `docs/SETUP.md` adım 1-2 (Supabase link, migration, seed, `covers` bucket)
 - [x] Admin rolü (`docs/SETUP.md` adım 4)
-- [ ] Google ve Discord OAuth (`docs/SETUP.md` adım 3): kod ve `config.toml` hazır; Google/Discord uygulamaları ve anahtarlar bekleniyor
+- [x] Google ve Discord OAuth (`docs/SETUP.md` adım 3): Supabase'de açık, Google girişi admin hesabına bağlı
 
 ## Faz 1 — MVP
 
@@ -53,7 +53,7 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 
 ## Faz 3 — Topluluk
 
-- [ ] Herkese açık e-posta girişi: Supabase'e custom SMTP. CAPTCHA'nın form tarafı hazır (`/login` token gönderiyor); `config.toml` `[auth.captcha]` açılmalı
+- [ ] Herkese açık e-posta girişi: Supabase'e custom SMTP (CAPTCHA zaten açık)
 - [ ] Yorumlar (yazma yetkisi `security_hardening` ile kapalı; açarken rate limit trigger'ı ekle)
 - [ ] Puanlama (yazma yetkisi kapalı, yorumlarla aynı not)
 - [ ] "Works for me" raporları (`game_reports`) ve kartta cihaz bazlı özet
