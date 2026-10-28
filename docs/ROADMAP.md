@@ -58,12 +58,11 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] `scripts/lib`: `http`, `classify` (+ parmak izi), `score`, `notify`, `db` + birim testleri (`normalize-url` dahil, 19 test)
 - [x] Kaynaklar: `hackernews`, `googlenews` (sarmalayıcı link çözülüyor), `reddit` (RSS, 429'da atlar), `github`
 - [x] `scripts/collect.ts`: mention yazma, kopya/duplicate tespiti, skor
-- [x] `scripts/extract.ts`: Claude Haiku 5.5 (AI Gateway) ile alan çıkarma + açıklama taslağı + SteamGridDB kapak/hero, emin olunan "port değil"leri otomatik reddetme, haberden gelen adayı port URL'sine taşıma
+- [x] `scripts/extract.ts`: Gemini ücretsiz katmanı (3.8 Flash, meşgulse Flash-Lite) ile alan çıkarma + açıklama taslağı + SteamGridDB kapak/hero, emin olunan "port değil"leri otomatik reddetme, haberden gelen adayı port URL'sine taşıma
 - [x] Viral skor + Discord webhook bildirimi (webhook opsiyonel, henüz yok)
 - [x] `scripts/check-links.ts`: karar tablosu, aynı çalıştırmada tekrar deneme, `fail_streak`, revalidate. Herkese açık satıra sadece ok/broken yazılır
 - [x] `/admin/candidates` formunun `extracted` ile dolu açılması (Save doğrudan yayınlar)
 - [x] Admin oyun tablosunda son kontrolün rozeti (kırık, sayfa değişti, takedown?, yavaş)
-- [ ] AI Gateway kredisi: Vercel hesabına kart eklenince ücretsiz krediler açılır (kullanıcı); o zamana kadar `extract` 403 alıp duruyor
 - [ ] Admin: `taken_down` onayı (oyunu gizle + `taken_down_at`), `changed` için "tamam" butonu
 - [x] `.github/workflows/discover.yml` (6 saatte bir) + `check-links.yml` (günlük) + secret'lar
 - [ ] `scripts/smoke.ts` + `weekly-smoke.yml`, admin'de son ekran görüntüsü

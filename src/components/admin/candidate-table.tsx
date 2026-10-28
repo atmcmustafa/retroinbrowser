@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { setCandidateStatus, type ReviewStatus } from "@/lib/actions/candidates";
-import type { AdminCandidateRow } from "@/lib/data/admin";
+import type { AdminCandidateRow, ListedGames } from "@/lib/data/admin";
 import { parseExtracted } from "@/lib/schemas/extraction";
 import type { Enums } from "@/types/database";
 
@@ -28,13 +28,24 @@ const sourceLabels: Record<Enums<"candidate_source">, string> = {
   googlenews: "Google News",
 };
 
-function ExtractedLine({ candidate }: { candidate: AdminCandidateRow }) {
+function ExtractedLine({
+  candidate,
+  listed,
+}: {
+  candidate: AdminCandidateRow;
+  listed: ListedGames;
+}) {
   const extracted = parseExtracted(candidate.extracted);
   if (!extracted) return null;
   if (!extracted.is_port) {
-    return <p className="mt-1 text-xs text-muted-foreground">Not a port: {extracted.reason}</p>;
+    return (
+      <p className="mt-1 text-xs text-muted-foreground">
+        Not a port ({Math.round(extracted.confidence * 100)}% sure): {extracted.reason}
+      </p>
+    );
   }
   const name = [extracted.title, extracted.original_title].filter(Boolean).join(" · ");
+  const existing = extracted.original_title && listed[extracted.original_title.toLowerCase()];
   return (
     <p className="mt-1 text-xs">
       {name || "Port"}
@@ -42,6 +53,18 @@ function ExtractedLine({ candidate }: { candidate: AdminCandidateRow }) {
         {" "}
         · {Math.round(extracted.confidence * 100)}% sure
       </span>
+      {existing && (
+        <span className="text-muted-foreground">
+          {" "}
+          · Already listed:{" "}
+          <Link
+            href={`/admin/games/${existing.id}`}
+            className="rounded-sm text-foreground underline underline-offset-2"
+          >
+            {existing.title}
+          </Link>
+        </span>
+      )}
     </p>
   );
 }
@@ -65,9 +88,11 @@ function displayUrl(url: string) {
 export function CandidatesTable({
   candidates,
   status,
+  listed,
 }: {
   candidates: AdminCandidateRow[];
   status: Enums<"candidate_status">;
+  listed: ListedGames;
 }) {
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [pending, startTransition] = useTransition();
@@ -209,7 +234,7 @@ export function CandidatesTable({
                     &ldquo;{candidate.note}&rdquo;
                   </p>
                 )}
-                <ExtractedLine candidate={candidate} />
+                <ExtractedLine candidate={candidate} listed={listed} />
               </TableCell>
               <TableCell className="align-top">
                 {sourceLabels[candidate.source]}

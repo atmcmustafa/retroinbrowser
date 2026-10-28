@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CandidatesTable } from "@/components/admin/candidate-table";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { requireAdmin } from "@/lib/auth";
-import { getAdminCandidates, getCandidateCounts } from "@/lib/data/admin";
+import { getAdminCandidates, getCandidateCounts, getListedGames } from "@/lib/data/admin";
 import { loadAdminCandidatesParams, serializeAdminCandidatesParams } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
 import { Constants, type Enums } from "@/types/database";
@@ -33,9 +33,10 @@ export default async function AdminCandidatesPage({
 }) {
   await requireAdmin();
   const { status } = await loadAdminCandidatesParams(searchParams);
-  const [candidates, counts] = await Promise.all([
+  const [candidates, counts, listed] = await Promise.all([
     getAdminCandidates(status),
     getCandidateCounts(),
+    getListedGames(),
   ]);
 
   return (
@@ -66,7 +67,7 @@ export default async function AdminCandidatesPage({
         })}
       </nav>
       {candidates.length ? (
-        <CandidatesTable candidates={candidates} status={status} />
+        <CandidatesTable candidates={candidates} status={status} listed={listed} />
       ) : (
         <p className="mt-6 rounded-lg border border-dashed px-6 py-12 text-center text-muted-foreground">
           {emptyText[status]}
