@@ -13,6 +13,7 @@
     "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts && prettier --write src/types/database.ts",
     "db:push": "supabase db push",
     "db:new": "supabase migration new",
+    "db:config": "tsx scripts/supabase-config.ts",
     "artwork": "tsx --conditions=react-server --env-file=.env.local scripts/fill-artwork.ts"
   },
   "dependencies": {

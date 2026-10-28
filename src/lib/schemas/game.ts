@@ -8,7 +8,12 @@ export const gameStatusLabels: Record<Enums<"game_status">, string> = {
   hidden: "Hidden",
 };
 
-const webUrl = z.url({ protocol: /^https?$/, error: "Enter a full http(s) URL" });
+// The URL parser accepts "https:example.com" but the raw string is stored, and the database
+// only takes values that start with http(s)://.
+const webUrl = z
+  .string()
+  .regex(/^https?:\/\//i, "Enter a full http(s) URL")
+  .pipe(z.url({ protocol: /^https?$/, error: "Enter a full http(s) URL" }));
 
 const artworkUrl = z
   .string()

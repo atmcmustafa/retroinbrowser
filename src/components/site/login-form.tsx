@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import { useActionState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -8,9 +9,15 @@ import { sendMagicLink, type LoginState } from "@/lib/actions/auth";
 
 const initialState: LoginState = { status: "idle", email: "" };
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({ next, siteKey }: { next: string; siteKey: string | undefined }) {
   const [state, formAction, pending] = useActionState(sendMagicLink, initialState);
+  const turnstile = useRef<TurnstileInstance>(null);
   const invalid = state.status === "invalid";
+
+  // Tokens are single-use, so every attempt needs a fresh one.
+  useEffect(() => {
+    if (state.status !== "idle") turnstile.current?.reset();
+  }, [state]);
 
   return (
     <form action={formAction} className="mt-8 flex flex-col gap-4">
@@ -29,6 +36,18 @@ export function LoginForm({ next }: { next: string }) {
         />
         {invalid && <FieldError id="email-error">{state.message}</FieldError>}
       </Field>
+      {siteKey && (
+        <Turnstile
+          ref={turnstile}
+          siteKey={siteKey}
+          options={{
+            theme: "dark",
+            size: "flexible",
+            action: "login",
+            appearance: "interaction-only",
+          }}
+        />
+      )}
       <Button type="submit" size="lg" disabled={pending}>
         {pending ? "Sending…" : "Send sign-in link"}
       </Button>

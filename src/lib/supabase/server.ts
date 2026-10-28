@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { env } from "@/lib/env";
 import { serverEnv } from "@/lib/env.server";
+import { authCookieOptions } from "@/lib/supabase/cookie-options";
 import type { Database } from "@/types/database";
 
 export async function createClient() {
@@ -17,6 +18,7 @@ export async function createClient() {
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      cookieOptions: authCookieOptions,
       cookies: {
         getAll() {
           return cookieStore.getAll();
@@ -44,7 +46,7 @@ export function createPublicClient() {
   );
 }
 
-// Bypasses RLS. Only for trusted server code (submissions, cron jobs).
+// Bypasses RLS. Only for trusted server code (submissions, click counting, cron jobs).
 export function createAdminClient() {
   return createSupabaseClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
