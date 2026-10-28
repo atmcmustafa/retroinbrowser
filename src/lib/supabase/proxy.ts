@@ -28,16 +28,17 @@ export async function updateSession(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
+  const { pathname } = request.nextUrl;
 
-  if (request.nextUrl.pathname.startsWith("/admin")) {
-    if (!userId) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.search = "";
-      url.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
-      return NextResponse.redirect(url);
-    }
+  if (!userId && (pathname.startsWith("/admin") || pathname.startsWith("/profile"))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = "";
+    url.searchParams.set("next", pathname + request.nextUrl.search);
+    return NextResponse.redirect(url);
+  }
 
+  if (userId && pathname.startsWith("/admin")) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")

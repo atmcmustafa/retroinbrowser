@@ -1,5 +1,6 @@
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { Toaster } from "@/components/ui/sonner";
 
 // Shared by the (site) layout and the root 404, which renders outside that layout.
 export function SiteShell({ children }: { children: React.ReactNode }) {
@@ -16,6 +17,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <SiteFooter />
+      <Toaster position="bottom-right" />
     </div>
   );
 }

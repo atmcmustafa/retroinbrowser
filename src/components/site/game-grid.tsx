@@ -6,7 +6,13 @@ const gridClass = "grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 md:grid-cols-
 const cardSizes =
   "(min-width: 1024px) 176px, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw";
 
-export function GameGrid({ games, rankOffset }: { games: GameCardData[]; rankOffset?: number }) {
+export function GameGrid({
+  games,
+  rankOffset,
+}: {
+  games: (GameCardData & { note?: string })[];
+  rankOffset?: number;
+}) {
   return (
     <ul className={gridClass}>
       {games.map((game, index) => (
@@ -14,6 +20,7 @@ export function GameGrid({ games, rankOffset }: { games: GameCardData[]; rankOff
           <GameCard
             game={game}
             sizes={cardSizes}
+            note={game.note}
             rank={rankOffset === undefined ? undefined : rankOffset + index + 1}
           />
         </li>

@@ -1,8 +1,18 @@
 import "server-only";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getCurrentUser() {
+// Mirrors profiles_avatar_url_check, so token metadata can't point the header at any URL.
+const providerAvatar =
+  /^https:\/\/(cdn\.discordapp\.com\/(embed\/)?avatars\/|lh[0-9]+\.googleusercontent\.com\/a-?\/|avatars\.githubusercontent\.com\/u\/)/;
+
+function text(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+// Cached per request: the header, the page and its buttons all ask for the same user.
+export const getCurrentUser = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
@@ -10,11 +20,37 @@ export async function getCurrentUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, username, avatar_url, role")
+    .select("id, username, avatar_url, role, created_at")
     .eq("id", claims.sub)
     .single();
+  if (!profile) return null;
 
-  return profile && { ...profile, email: claims.email ?? null };
+  // A provider linked after sign-up (Google on an email account) leaves the profile empty;
+  // the name and picture in the token fill the gaps.
+  const meta = claims.user_metadata ?? {};
+  const email = claims.email ?? null;
+  const metaAvatar = text(meta.avatar_url);
+  return {
+    ...profile,
+    email,
+    name:
+      profile.username ??
+      text(meta.full_name) ??
+      text(meta.name) ??
+      email?.split("@")[0] ??
+      "Player",
+    avatar:
+      profile.avatar_url ?? (metaAvatar && providerAvatar.test(metaAvatar) ? metaAvatar : null),
+    providers: claims.app_metadata?.providers ?? [],
+  };
+});
+
+export type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
+
+export async function requireUser(next = "/profile") {
+  const user = await getCurrentUser();
+  if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
+  return user;
 }
 
 export async function requireAdmin() {

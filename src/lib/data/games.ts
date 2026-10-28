@@ -4,7 +4,7 @@ import { toSearchTerm } from "@/lib/search";
 import type { CatalogSort } from "@/lib/search-params";
 import { createPublicClient } from "@/lib/supabase/server";
 
-const cardColumns =
+export const cardColumns =
   "id, slug, title, original_title, cover_url, mobile_support, gamepad_support, requires_own_files, platform:platforms(slug, name, short_name, color)";
 const featuredColumns = `${cardColumns}, hero_url, summary` as const;
 const genreCardColumns = `${cardColumns}, game_genres!inner(genre_id)` as const;
