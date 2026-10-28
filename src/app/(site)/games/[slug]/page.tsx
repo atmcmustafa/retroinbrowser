@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { FavoriteControl, FavoriteControlSkeleton } from "@/components/site/favorite-control";
 import { badgesFor } from "@/components/site/game-badges";
 import { GameRow } from "@/components/site/game-row";
 import { InfoBox } from "@/components/site/info-box";
@@ -161,6 +162,9 @@ async function GameDetail({ params }: { params: Params }) {
                 <ExternalLinkIcon data-icon="inline-end" />
               </a>
             </Button>
+            <Suspense fallback={<FavoriteControlSkeleton />}>
+              <FavoriteControl gameId={game.id} slug={game.slug} />
+            </Suspense>
             {game.source_url && (
               <Button asChild size="lg" variant="outline">
                 <a href={game.source_url} target="_blank" rel="noopener noreferrer">

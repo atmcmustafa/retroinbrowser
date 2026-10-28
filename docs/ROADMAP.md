@@ -34,7 +34,11 @@ Her adım ayrı bir Claude Code oturumu/commit olabilir. Bitince `[x]`.
 - [x] `sitemap.ts`, `robots.ts`, OG görselleri, metadata
 - [x] İletişim adresi: `retroinbrowser@gmail.com` (`src/lib/site.ts` → /about, /dmca, footer)
 - [x] Güvenlik taraması ve sıkılaştırma (28 Ekim): migration `security_hardening`, HTTP header'ları/CSP, HttpOnly auth cookie'leri, tıklama tekilleştirme, `next/image` kısıtı
-- [ ] Vercel + Cloudflare ile canlıya alma (`docs/SETUP.md` 5-6), sonra Cloudflare kurallarını gözden geçir
+- [x] Vercel + Cloudflare ile canlıya alma: https://retroinbrowser.com (DNS only, `fra1`)
+- [x] Header'da Sign in / hesap menüsü, ana sayfada kütüphane kutusu
+- [x] `/profile`: bilgiler, son oynananlar (`/go`), favoriler (oyun sayfasında Save); migration `library` (bağımsız agent incelemesi)
+- [x] Vercel Firewall: POST, `/go/`, `/api/`, `/auth/` için IP başına 100 istek/dk kuralı, `log` modunda
+- [ ] Firewall kuralını trafiğe bakıp 429'a çevir (bir hafta sonra; `docs/HANDOFF.md`)
 
 ## Faz 2 — Otomasyon (detay: `docs/AUTOMATION.md`)
 

@@ -7,10 +7,12 @@ import type { GameCardData } from "@/lib/data/games";
 export function GameCard({
   game,
   rank,
+  note,
   sizes = "(min-width: 1152px) 152px, (min-width: 768px) 14vw, 144px",
 }: {
   game: GameCardData;
   rank?: number;
+  note?: string;
   sizes?: string;
 }) {
   const shown = badgesFor(game);
@@ -63,6 +65,7 @@ export function GameCard({
             {game.platform.name}
           </p>
         )}
+        {note && <p className="mt-1 truncate text-xs text-muted-foreground">{note}</p>}
         {shown.length > 0 && (
           <span className="sr-only">{shown.map(({ label }) => label).join(", ")}</span>
         )}

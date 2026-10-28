@@ -34,7 +34,7 @@ Platform renkleri veritabanında (`platforms.color`), kartlarda küçük nokta o
 
 ## Bileşenler
 
-- **Üst menü:** logo, linkler (Discover, All games, Popular, New), sağda arama ikonu, Discord, "Submit a game" (ghost), tek dolu accent buton. Aktif link: yuvarlak surface arka plan + accent alt çizgi
+- **Üst menü:** logo, linkler (Discover, All games, Popular, New), sağda arama ikonu, Discord, "Submit a game" (outline), tek dolu accent buton **Sign in**; giriş yapınca yerine avatar menüsü (Profile, Admin, Sign out). Aktif link: yuvarlak surface arka plan + accent alt çizgi
 - **Oyun kartı:** 2:3 dikey kapak, radius 12px (`rounded-card`), 1px border. Sol üst: sıra numarası (sadece popular). Sağ üst: küçük rozet grubu (mobil, gamepad, kendi dosya). Altında: port adı (14px semibold), orijinal oyun (12px muted), platform noktası + adı. Hover: hafif yukarı kayma + border açılır
 - **Yatay satır:** başlık + `>` ile tümünü gör; masaüstünde 7 kart, mobilde yatay kaydırma
 - **Tür kartı:** ikon kutusu + ad + sağda sayı rozeti; 4 sütun ızgara

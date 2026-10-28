@@ -123,6 +123,39 @@ export type Database = {
           },
         ];
       };
+      favorites: {
+        Row: {
+          created_at: string;
+          game_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          game_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          game_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "favorites_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "favorites_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       game_click_visitors: {
         Row: {
           day: string;
@@ -322,6 +355,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      play_history: {
+        Row: {
+          game_id: string;
+          played_at: string;
+          user_id: string;
+        };
+        Insert: {
+          game_id: string;
+          played_at?: string;
+          user_id: string;
+        };
+        Update: {
+          game_id?: string;
+          played_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "play_history_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "play_history_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -407,6 +473,7 @@ export type Database = {
         Returns: undefined;
       };
       is_admin: { Args: never; Returns: boolean };
+      record_play: { Args: { p_game_id: string }; Returns: undefined };
     };
     Enums: {
       candidate_source: "reddit" | "hackernews" | "github" | "user";

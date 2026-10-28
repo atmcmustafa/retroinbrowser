@@ -28,8 +28,9 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  // Admin previews load stored covers and SteamGridDB thumbnails directly.
-  `img-src 'self' data: blob: ${supabase.origin} https://cdn2.steamgriddb.com`,
+  // Admin previews load stored covers and SteamGridDB thumbnails directly; avatars come from
+  // the sign-in providers' CDNs (same hosts as profiles_avatar_url_check).
+  `img-src 'self' data: blob: ${supabase.origin} https://cdn2.steamgriddb.com https://*.googleusercontent.com https://cdn.discordapp.com https://avatars.githubusercontent.com`,
   "font-src 'self'",
   `connect-src 'self'${isDev ? " ws:" : ""}`,
   "frame-src https://challenges.cloudflare.com",

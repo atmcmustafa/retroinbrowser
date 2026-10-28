@@ -5,7 +5,7 @@ import { after, NextResponse, type NextRequest } from "next/server";
 import { getGameBySlug } from "@/lib/data/games";
 import { serverEnv } from "@/lib/env.server";
 import { clientIp } from "@/lib/request-ip";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 
 // Link unfurlers and crawlers follow Play links too; they shouldn't move the Popular ranking.
 const botAgent = /bot|crawl|spider|slurp|preview|facebookexternalhit|embed/i;
@@ -48,6 +48,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         visitor: visitorKey(ip),
       });
       if (error) console.error("Counting click failed", slug, error);
+    });
+  }
+
+  // Signed-in players get the game at the top of their recently played list. The claims check
+  // is local (asymmetric JWT), so anonymous visitors cost nothing extra.
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  if (data?.claims?.sub) {
+    after(async () => {
+      const { error } = await supabase.rpc("record_play", { p_game_id: game.id });
+      if (error) console.error("Recording play failed", slug, error);
     });
   }
 

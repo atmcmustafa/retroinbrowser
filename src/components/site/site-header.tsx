@@ -1,6 +1,7 @@
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+import { AccountControl, AccountControlSkeleton } from "@/components/site/account-control";
 import { Logo } from "@/components/site/logo";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { SearchPalette } from "@/components/site/search-palette";
@@ -23,6 +24,9 @@ export function SiteHeader() {
               Submit a game
             </Link>
           </Button>
+          <Suspense fallback={<AccountControlSkeleton />}>
+            <AccountControl />
+          </Suspense>
           <MobileNav />
         </div>
       </div>

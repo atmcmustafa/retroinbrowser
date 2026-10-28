@@ -18,6 +18,7 @@
 - `candidates`: bot ve kullanıcı önerileri, onay kuyruğu. `url` unique
 - `profiles`: `auth.users` ile 1-1, kayıtta trigger ile oluşur. `role` kullanıcı tarafından değiştirilemez (kolon yetkisi)
 - `game_click_visitors`: `/go` tıklamalarının günlük tekilleştirmesi (gün, oyun, ziyaretçi hash'i), sadece service_role
+- `favorites`, `play_history`: kullanıcının kütüphanesi, kullanıcı ve oyun başına bir satır. Sadece sahibi okur/yazar, sadece yayındaki oyunlar eklenir; zaman damgalarını veritabanı koyar (kolon yetkileri). `play_history`'yi `/go` `record_play(game_id)` ile yazar (invoker, kullanıcı JWT'den)
 - `comments`, `ratings`, `game_ratings` view: Faz 3
 
 ## Güvenlik
@@ -49,7 +50,7 @@ Admin kapak seçtiğinde sunucu tarafında `sharp` ile WebP'ye çevrilir (kapak 
 - Elle SQL/panel düzenlemesinden sonra: admin özetinde **Refresh site** düğmesi.
 - Sadece `published` oyunlar herkese açık. Admin özeti taslak sayısını uyarır; `/admin/games`'te toplu Publish/Draft/Hide var.
 
-Oturum okuyan her şey `<Suspense>` içinde olmalı. `partialPrefetching` açık olduğu için cookie'ler prerender sırasında okunabiliyor; supabase-js ise her çağrıda `Date.now()` ile token süresine bakıyor. Bu yüzden `createClient()` önce `await connection()` çağırır. Sayfalar arası geçişte layout'taki Suspense devreye girmez. İstek anında veri okuyan her sayfanın **kendi klasöründe** `loading.tsx` olmalı (ya da sayfa içinde `<Suspense>`); üst klasördeki `loading.tsx` alt sayfaları kapsamaz. `usePathname` kullanan admin menüsü ayrıca Suspense'e sarılı, çünkü `/admin/games/[id]` dinamik parametreli.
+Oturum okuyan her şey `<Suspense>` içinde olmalı. Kullanıcıya özel parçalar (header'daki Sign in/hesap menüsü, ana sayfadaki kütüphane kutusu, oyun sayfasındaki Save) küçük dinamik delikler; sayfanın geri kalanı önbellekli shell'de kalır. `getCurrentUser()` React `cache` ile istek başına bir kez çalışır, `getClaims()` ES256 JWT'yi yerelde doğrular (ağ çağrısı yok). Kütüphane verisi asla `"use cache"` içinde okunmaz. `partialPrefetching` açık olduğu için cookie'ler prerender sırasında okunabiliyor; supabase-js ise her çağrıda `Date.now()` ile token süresine bakıyor. Bu yüzden `createClient()` önce `await connection()` çağırır. Sayfalar arası geçişte layout'taki Suspense devreye girmez. İstek anında veri okuyan her sayfanın **kendi klasöründe** `loading.tsx` olmalı (ya da sayfa içinde `<Suspense>`); üst klasördeki `loading.tsx` alt sayfaları kapsamaz. `usePathname` kullanan admin menüsü ayrıca Suspense'e sarılı, çünkü `/admin/games/[id]` dinamik parametreli.
 
 ## Klasör yapısı
 
@@ -66,7 +67,7 @@ src/
     admin/
   lib/
     supabase/        server.ts, proxy.ts, cookie-options.ts (tarayıcı client'ı yok)
-    data/            okuma fonksiyonları (games.ts, taxonomy.ts, admin.ts, auth.ts)
+    data/            okuma fonksiyonları (games.ts, taxonomy.ts, admin.ts, auth.ts, library.ts)
     actions/         server action'lar
     schemas/         client form ve server action'ın paylaştığı zod şemaları
     search-params.ts nuqs parser'ları (URL durumu, server ve client ortak)

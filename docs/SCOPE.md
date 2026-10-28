@@ -19,6 +19,8 @@ Site arayüzü İngilizce (kitle global). Kod, commit ve dokümanlar serbest.
 | `/submit`                             | Oyun öner formu: URL + not. Turnstile doğrulaması, sonuç `candidates` tablosuna `source=user`                                                                        |
 | `/about`, `/dmca`                     | Kısa metin, kaldırma talebi iletişimi                                                                                                                                |
 | `/login`                              | E-posta (magic link), Google ve Discord ile giriş                                                                                                                    |
+| `/profile`                            | Giriş yapan kullanıcının kendi sayfası: ad, e-posta, giriş yöntemleri, son oynananlar (Play'e basınca), favoriler (oyun sayfasında Save). Sadece kendisi görür       |
+| Header                                | Arama, Submit, giriş yapmamışsa **Sign in**, yapmışsa avatar menüsü (Profile, Admin, Sign out). Ana sayfada "Keep your games" kutusu                                 |
 | Arama                                 | Üst menüde ⌘K / Ctrl+K komut paleti                                                                                                                                  |
 | SEO                                   | `sitemap.ts`, `robots.ts`, oyun sayfaları için dinamik OG görseli ve metadata                                                                                        |
 
@@ -43,7 +45,7 @@ Site arayüzü İngilizce (kitle global). Kod, commit ve dokümanlar serbest.
 
 - Oyun başına yorumlar ve 1-5 puan (tablolar şemada hazır)
 - "Mobilde çalışıyor mu" kullanıcı raporları
-- Profil sayfası
+- Herkese açık profil (yorumlarla birlikte; şu anki `/profile` sadece sahibine)
 
 ## Kapsam dışı
 
