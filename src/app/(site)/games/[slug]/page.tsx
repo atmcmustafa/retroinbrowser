@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getGameBySlug, getPublishedSlugs, getSimilarGames } from "@/lib/data/games";
 import { env } from "@/lib/env";
+import { originalPlatform } from "@/lib/platform-name";
 import { baseOpenGraph } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -151,7 +152,7 @@ async function GameDetail({ params }: { params: Params }) {
                 className="size-2 rounded-full"
                 style={{ backgroundColor: game.platform.color }}
               />
-              Originally on {game.platform.name}
+              Originally on {originalPlatform(game.platform)}
             </Link>
           )}
           <h1 className="mt-2 font-display text-4xl leading-[1.05] font-extrabold tracking-tight text-balance break-words [font-stretch:125%] sm:text-[3.5rem]">

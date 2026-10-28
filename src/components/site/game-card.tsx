@@ -2,21 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { badgesFor } from "@/components/site/game-badges";
 import type { GameCardData } from "@/lib/data/games";
-
-// The platform is where the game first came out, not where it runs: every port plays in the
-// browser. Cards are narrow, so long names use the short form ("PS2").
-function originalPlatform({
-  slug,
-  name,
-  short_name,
-}: {
-  slug: string;
-  name: string;
-  short_name: string | null;
-}) {
-  if (slug === "other") return "another system";
-  return name.length <= 8 || !short_name ? name : short_name;
-}
+import { originalPlatform } from "@/lib/platform-name";
 
 // Default sizes fit the 7-up rows; grids pass their own. The link is positioned so the sr-only
 // labels inside stay in the card: otherwise they escape a scrolling row and widen the page.
@@ -73,7 +59,7 @@ export function GameCard({
         <p className="truncate text-xs text-muted-foreground">{game.original_title}</p>
         {game.platform && (
           <p
-            title={`Originally on ${game.platform.name}`}
+            title={`Originally on ${originalPlatform(game.platform)}`}
             className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground"
           >
             <span
@@ -81,7 +67,7 @@ export function GameCard({
               className="size-1.5 shrink-0 rounded-full"
               style={{ backgroundColor: game.platform.color }}
             />
-            Originally on {originalPlatform(game.platform)}
+            Originally on {originalPlatform(game.platform, true)}
           </p>
         )}
         {note && <p className="mt-1 truncate text-xs text-muted-foreground">{note}</p>}
