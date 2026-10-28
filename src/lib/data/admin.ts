@@ -111,6 +111,35 @@ export type AdminTaxonomy = Awaited<ReturnType<typeof getAdminTaxonomy>>;
 export type AdminPlatform = AdminTaxonomy["platforms"][number];
 export type AdminGenre = AdminTaxonomy["genres"][number];
 
+// Deleted comments stay in the list: RLS shows them to admins only.
+export async function getAdminComments() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("comments")
+    .select("id, author_name, body, tags, created_at, deleted_at, game:games(id, slug, title)")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw error;
+  return data;
+}
+
+// The latest weekly screenshot per published game (scripts/smoke.ts).
+export async function getSmokeChecks() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("games")
+    .select(
+      "id, slug, title, play_url, link_checks(checked_at, verdict, http_status, error, details)",
+    )
+    .eq("status", "published")
+    .eq("link_checks.kind", "smoke")
+    .order("title")
+    .order("checked_at", { referencedTable: "link_checks", ascending: false })
+    .limit(1, { referencedTable: "link_checks" });
+  if (error) throw error;
+  return data;
+}
+
 // Keyed by lowercased original title: a candidate for a game already in the catalog is
 // usually the same port found again, though a second port of the same game can be real.
 export async function getListedGames() {

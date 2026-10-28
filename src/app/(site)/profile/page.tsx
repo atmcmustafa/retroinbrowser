@@ -1,4 +1,4 @@
-import { format, formatDistanceToNowStrict } from "date-fns";
+import { format } from "date-fns";
 import { LogOutIcon, ShieldIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,6 +12,7 @@ import { signOut } from "@/lib/actions/auth";
 import { requireUser } from "@/lib/auth";
 import { providerNames } from "@/lib/auth-providers";
 import { getFavorites, getRecentlyPlayed } from "@/lib/data/library";
+import { timeAgo } from "@/lib/time-ago";
 
 export const metadata: Metadata = {
   title: "Your profile",
@@ -85,7 +86,7 @@ async function Profile() {
           <GameGrid
             games={recent.map((game) => ({
               ...game,
-              note: `Played ${formatDistanceToNowStrict(new Date(game.played_at), { addSuffix: true })}`,
+              note: `Played ${timeAgo(game.played_at)}`,
             }))}
           />
         ) : (

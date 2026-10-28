@@ -234,4 +234,5 @@ export async function refreshPublicCache() {
   await requireAdmin();
   updateTag("games");
   updateTag("taxonomy");
+  updateTag("comments");
 }

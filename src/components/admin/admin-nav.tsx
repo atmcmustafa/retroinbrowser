@@ -8,6 +8,8 @@ const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/games", label: "Games" },
   { href: "/admin/candidates", label: "Candidates" },
+  { href: "/admin/comments", label: "Comments" },
+  { href: "/admin/screenshots", label: "Screenshots" },
   { href: "/admin/taxonomy", label: "Taxonomy" },
 ];
 
@@ -19,7 +21,7 @@ export function AdminNav() {
 // /admin/games/[id] can't resolve usePathname during prerendering.
 export function AdminNavLinks({ pathname }: { pathname?: string }) {
   return (
-    <nav aria-label="Admin" className="flex items-center gap-1">
+    <nav aria-label="Admin" className="flex flex-wrap items-center gap-x-1 gap-y-2">
       {links.map(({ href, label }) => {
         const active =
           pathname !== undefined &&

@@ -136,27 +136,33 @@ export type Database = {
       };
       comments: {
         Row: {
+          author_name: string;
           body: string;
           created_at: string;
           deleted_at: string | null;
           game_id: string;
           id: string;
+          tags: string[];
           user_id: string;
         };
         Insert: {
-          body: string;
+          author_name: string;
+          body?: string;
           created_at?: string;
           deleted_at?: string | null;
           game_id: string;
           id?: string;
+          tags?: string[];
           user_id: string;
         };
         Update: {
+          author_name?: string;
           body?: string;
           created_at?: string;
           deleted_at?: string | null;
           game_id?: string;
           id?: string;
+          tags?: string[];
           user_id?: string;
         };
         Relationships: [
