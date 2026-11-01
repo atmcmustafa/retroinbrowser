@@ -1,5 +1,5 @@
 # Checks every published game's link once a day (scripts/check-links.ts) and refreshes the
-# site's cache when a game breaks or comes back. Design: docs/AUTOMATION.md.
+# site's cache when a game breaks or comes back.
 name: Check links
 
 on:

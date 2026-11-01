@@ -3,7 +3,7 @@
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
 # Also the source of truth for the hosted project: `npx supabase config diff` shows drift and
-# `npx supabase config push` applies this file (see docs/SETUP.md).
+# `npx supabase config push` applies this file.
 project_id = "retroinbrowser"
 
 [api]
@@ -344,7 +344,7 @@ skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
 email_optional = false
 
-# Callback for both apps: https://wnumnhogqurumgeejnvb.supabase.co/auth/v1/callback (docs/SETUP.md 3).
+# Callback for both apps: https://wnumnhogqurumgeejnvb.supabase.co/auth/v1/callback
 [auth.external.google]
 enabled = true
 client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"

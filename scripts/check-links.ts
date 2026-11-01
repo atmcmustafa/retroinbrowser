@@ -8,7 +8,7 @@ import { revalidateSite } from "./lib/revalidate";
 
 const CONCURRENCY = 4;
 // A failed link gets a second try in the same run: two failures mark it broken the same day,
-// one blip doesn't (docs/AUTOMATION.md review note).
+// one blip doesn't.
 const RETRY_AFTER_MS = 5 * 60_000;
 const BROKEN_AFTER = 2;
 

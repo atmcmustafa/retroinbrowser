@@ -11,7 +11,7 @@ import { createScriptClient } from "./lib/db";
 // Weekly: opens every published port in headless Chrome, waits, and keeps a screenshot plus
 // what the page logged, for /admin/screenshots. Runners have no GPU, so WebGPU ports often
 // show their "not supported" screen; that still shows the site is up. Nothing here changes
-// the public game row (docs/AUTOMATION.md, section 5).
+// the public game row.
 
 const WAIT_MS = 10_000;
 const PORT = 9333;

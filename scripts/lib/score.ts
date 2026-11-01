@@ -6,8 +6,8 @@ function publisher(title: string | null) {
   return (parts.length > 1 ? parts[parts.length - 1] : (title ?? "")).trim().toLowerCase();
 }
 
-// docs/AUTOMATION.md: Hacker News stories weigh most, then distinct news outlets. Points,
-// upvotes and stars count on a log scale so one huge thread can't drown the rest.
+// Hacker News stories weigh most, then distinct news outlets. Points, upvotes and stars count
+// on a log scale so one huge thread can't drown the rest.
 export function scoreMentions(mentions: ScoredMention[]) {
   let stories = 0;
   let hnPoints = 0;

@@ -1,5 +1,5 @@
 # Finds new browser ports (scripts/collect.ts) and fills in their details (scripts/extract.ts).
-# Candidates wait in /admin/candidates for approval. Design: docs/AUTOMATION.md.
+# Candidates wait in /admin/candidates for approval.
 name: Discover ports
 
 on:

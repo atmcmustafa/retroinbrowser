@@ -10,7 +10,7 @@ import { GeminiError, generateJson } from "./lib/gemini";
 import { USER_AGENT, fetchPage, htmlToText, metaContent, pageLinks, pageTitle } from "./lib/http";
 import { notifyDiscord } from "./lib/notify";
 
-// docs/AUTOMATION.md: a free-tier model reads each new candidate; an admin approves every game.
+// A free-tier model reads each new candidate; an admin approves every game.
 // `npm run extract -- --limit 150` works through a backlog.
 // Free-tier models, best first. gemini-2.5-flash is closed to new projects.
 const MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"];

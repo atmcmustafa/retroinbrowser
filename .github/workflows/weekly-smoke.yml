@@ -1,5 +1,5 @@
 # Opens every published port in headless Chrome each Sunday and keeps a screenshot for
-# /admin/screenshots (scripts/smoke.ts). Design: docs/AUTOMATION.md, section 5.
+# /admin/screenshots (scripts/smoke.ts).
 name: Weekly smoke test
 
 on:

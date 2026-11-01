@@ -36,9 +36,8 @@ function sharesWords(a: string, b: string) {
   return [...words(b)].some((word) => left.has(word));
 }
 
-// docs/AUTOMATION.md decision table. "fail" is counted by the caller (fail_streak); the
-// "changed" decision rests on the domain and title, never on page text, since WebAssembly
-// ports often show nothing but "Loading".
+// "fail" is counted by the caller (fail_streak); the "changed" decision rests on the domain
+// and title, never on page text, since WebAssembly ports often show nothing but "Loading".
 export function classify(
   known: { playUrl: string; pageTitle: string | null },
   result: CheckResult,
