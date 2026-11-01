@@ -43,3 +43,8 @@ next-env.d.ts
 
 # local design references (large, third-party artwork)
 /screenshots-example/
+
+# internal docs, kept locally
+/CLAUDE.md
+/AGENTS.md
+/docs/

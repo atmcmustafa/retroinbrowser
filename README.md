@@ -18,4 +18,5 @@ cp .env.example .env.local
 npm run dev
 ```
 
-See `docs/SETUP.md` for service setup.
+It needs a Supabase project, Cloudflare Turnstile keys and a SteamGridDB API key; `.env.example`
+lists every variable.
