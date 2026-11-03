@@ -19,7 +19,7 @@ export async function generateMetadata({
     title: "New games",
     description: "The latest browser ports of classic games added to the directory.",
     path: "/new",
-    page,
+    query: { ...allGames, sort: "new", page },
   });
 }
 

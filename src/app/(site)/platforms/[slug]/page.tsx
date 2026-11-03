@@ -36,7 +36,7 @@ export async function generateMetadata({
     title: `${platform.name} games in your browser`,
     description: `Games first released on ${platform.name}, ported to run in your browser.`,
     path: `/platforms/${platform.slug}`,
-    page,
+    query: { ...allGames, platformId: platform.id, sort: "popular", page },
   });
 }
 

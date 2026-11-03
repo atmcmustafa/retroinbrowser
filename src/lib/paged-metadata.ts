@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
+import { searchCatalog, type CatalogQuery } from "@/lib/data/games";
 
-// Page 2 onward is its own document with its own games, so it keeps its own canonical. Pointing
-// every page at page 1 would tell search engines to ignore the games listed after it.
-export function pagedMetadata({
+export async function pagedMetadata({
   title,
   description,
   path,
-  page,
+  query,
 }: {
   title: string;
   description: string;
   path: string;
-  page: number;
-}): Metadata {
-  const paged = page > 1;
+  query: CatalogQuery;
+}): Promise<Metadata> {
+  const { page } = query;
+  if (page <= 1) return { title, description, alternates: { canonical: path } };
+
+  const { total } = await searchCatalog(query);
+  if (total === null) return { title, description, robots: { index: false } };
+
   return {
-    title: paged ? `${title}, page ${page}` : title,
+    title: `${title}, page ${page}`,
     description,
-    alternates: { canonical: paged ? `${path}?page=${page}` : path },
+    alternates: { canonical: `${path}?page=${page}` },
   };
 }

@@ -17,6 +17,8 @@ function cacheCatalog() {
   cacheLife("hours");
 }
 
+// The home rows promote games, so they leave out ports that stopped answering. The games stay in
+// the catalog with a notice, and come back on their own once a link check passes.
 export async function getPopularGames(limit: number) {
   "use cache";
   cacheCatalog();
@@ -25,6 +27,7 @@ export async function getPopularGames(limit: number) {
     .from("games")
     .select(cardColumns)
     .eq("status", "published")
+    .neq("link_status", "broken")
     .order("click_count", { ascending: false })
     .order("published_at", { ascending: false })
     .limit(limit);
@@ -42,6 +45,7 @@ export async function getNewGames(limit: number) {
     .from("games")
     .select(cardColumns)
     .eq("status", "published")
+    .neq("link_status", "broken")
     .order("published_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -56,6 +60,7 @@ export async function getGamesByGenre(genreId: number, limit: number) {
     .from("games")
     .select(genreCardColumns)
     .eq("status", "published")
+    .neq("link_status", "broken")
     .eq("game_genres.genre_id", genreId)
     .order("click_count", { ascending: false })
     .limit(limit);
@@ -71,6 +76,7 @@ export async function getFeaturedGames(limit: number) {
     .from("games")
     .select(featuredColumns)
     .eq("status", "published")
+    .neq("link_status", "broken")
     .eq("featured", true)
     .not("hero_url", "is", null)
     .order("published_at", { ascending: false })
@@ -247,12 +253,15 @@ export async function searchCatalog(query: CatalogQuery) {
   }
 
   const from = (query.page - 1) * CATALOG_PAGE_SIZE;
+  if (!Number.isSafeInteger(from)) return { games: [], total: null };
   const { data, count, error } = await request
     .order("title")
     .range(from, from + CATALOG_PAGE_SIZE - 1);
-  // PostgREST answers a page past the end with "range not satisfiable" instead of an empty list.
+  // PostgREST answers a page past the end with "range not satisfiable", except right at the end
+  // (an exact multiple of the page size), where it sends an empty list.
   if (error?.code === "PGRST103") return { games: [], total: null };
   if (error) throw error;
+  if (data.length === 0 && query.page > 1) return { games: [], total: null };
   return { games: data, total: count ?? 0 };
 }
 

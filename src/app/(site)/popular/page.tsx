@@ -19,7 +19,7 @@ export async function generateMetadata({
     title: "Popular games",
     description: "The most played browser ports of classic games, ranked by clicks.",
     path: "/popular",
-    page,
+    query: { ...allGames, sort: "popular", page },
   });
 }
 
