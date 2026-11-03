@@ -1,6 +1,7 @@
 import { normalizeUrl, urlKey } from "@/lib/normalize-url";
 import { createScriptClient } from "./lib/db";
 import { scoreMentions } from "./lib/score";
+import { directories } from "./sources/directories";
 import { github } from "./sources/github";
 import { googleNews } from "./sources/googlenews";
 import { hackerNews } from "./sources/hackernews";
@@ -59,6 +60,7 @@ async function main() {
     ["GitHub", github],
     ["Reddit", reddit],
     ["Google News", googleNews((wrapper) => candidateByMention.has(wrapper))],
+    ["Directories", directories((page) => candidateByMention.has(page))],
   ];
   const found = new Map<string, Mention>();
   for (const [name, source] of sources) {

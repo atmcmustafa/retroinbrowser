@@ -26,6 +26,7 @@ const sourceLabels: Record<Enums<"candidate_source">, string> = {
   reddit: "Reddit",
   github: "GitHub",
   googlenews: "Google News",
+  directory: "Directory",
 };
 
 function ExtractedLine({
