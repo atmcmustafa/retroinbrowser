@@ -615,7 +615,7 @@ export type Database = {
       record_play: { Args: { p_game_id: string }; Returns: undefined };
     };
     Enums: {
-      candidate_source: "reddit" | "hackernews" | "github" | "user" | "googlenews";
+      candidate_source: "reddit" | "hackernews" | "github" | "user" | "googlenews" | "directory";
       candidate_status: "pending" | "approved" | "rejected" | "duplicate";
       game_status: "draft" | "published" | "hidden";
       link_status: "unknown" | "ok" | "slow" | "changed" | "broken" | "taken_down";
@@ -741,7 +741,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      candidate_source: ["reddit", "hackernews", "github", "user", "googlenews"],
+      candidate_source: ["reddit", "hackernews", "github", "user", "googlenews", "directory"],
       candidate_status: ["pending", "approved", "rejected", "duplicate"],
       game_status: ["draft", "published", "hidden"],
       link_status: ["unknown", "ok", "slow", "changed", "broken", "taken_down"],
