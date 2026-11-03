@@ -37,7 +37,7 @@ export async function generateMetadata({
     title: `${genre.name} games in your browser`,
     description: `Classic ${genre.name.toLowerCase()} games ported to run in your browser.`,
     path: `/genres/${genre.slug}`,
-    page,
+    query: { ...allGames, genreId: genre.id, sort: "popular", page },
   });
 }
 

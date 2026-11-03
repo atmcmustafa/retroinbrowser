@@ -6,6 +6,7 @@ import { CatalogResults } from "@/components/site/catalog-results";
 import { GameGridSkeleton } from "@/components/site/game-grid";
 import { PageHeading } from "@/components/site/page-heading";
 import { Skeleton } from "@/components/ui/skeleton";
+import { allGames } from "@/lib/data/games";
 import { getGenres, getPlatforms } from "@/lib/data/taxonomy";
 import { pagedMetadata } from "@/lib/paged-metadata";
 import { loadCatalogParams, serializeCatalogParams } from "@/lib/search-params";
@@ -34,7 +35,7 @@ export async function generateMetadata({
     title: "All games",
     description: "Search and filter every browser port of a classic game in the directory.",
     path: "/games",
-    page: plain ? params.page : 1,
+    query: { ...allGames, sort: "popular", page: plain ? params.page : 1 },
   });
 }
 
