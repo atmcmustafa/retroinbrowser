@@ -18,10 +18,9 @@ function lookbackDays() {
   return Number.isInteger(days) && days > 0 ? days : LOOKBACK_DAYS;
 }
 
-// Never a port page: social and video sites, link aggregators, and other port directories
-// (discovery comes from primary sources, not competitors' lists).
+// Never a port page: social and video sites, link aggregators, and this site itself.
 const skipHost =
-  /(^|\.)(youtube\.com|youtu\.be|twitter\.com|x\.com|facebook\.com|instagram\.com|tiktok\.com|linkedin\.com|discord\.gg|discord\.com|t\.me|news\.ycombinator\.com|reddit\.com|portedgames\.com|recompiledgames\.com|retroinbrowser\.com)$/i;
+  /(^|\.)(youtube\.com|youtu\.be|twitter\.com|x\.com|facebook\.com|instagram\.com|tiktok\.com|linkedin\.com|discord\.gg|discord\.com|t\.me|news\.ycombinator\.com|reddit\.com|retroinbrowser\.com)$/i;
 
 function message(error: unknown) {
   return error instanceof Error ? error.message : String(error);
