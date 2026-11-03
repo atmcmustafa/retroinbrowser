@@ -7,6 +7,7 @@ import { PageHeading } from "@/components/site/page-heading";
 import { allGames } from "@/lib/data/games";
 import { getGenres } from "@/lib/data/taxonomy";
 import { GenreIcon } from "@/lib/genre-icons";
+import { pagedMetadata } from "@/lib/paged-metadata";
 import { loadPageParams } from "@/lib/search-params";
 
 type Params = Promise<{ slug: string }>;
@@ -22,14 +23,22 @@ export async function generateStaticParams() {
   return genres.map(({ slug }) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}): Promise<Metadata> {
   const genre = await findGenre((await params).slug);
   if (!genre) return { title: "Genre not found" };
-  return {
+  const { page } = await loadPageParams(searchParams);
+  return pagedMetadata({
     title: `${genre.name} games in your browser`,
     description: `Classic ${genre.name.toLowerCase()} games ported to run in your browser.`,
-    alternates: { canonical: `/genres/${genre.slug}` },
-  };
+    path: `/genres/${genre.slug}`,
+    page,
+  });
 }
 
 export default function GenrePage({

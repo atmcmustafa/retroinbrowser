@@ -6,6 +6,7 @@ import { FilterLink, ListingSkeleton } from "@/components/site/listing";
 import { PageHeading } from "@/components/site/page-heading";
 import { allGames } from "@/lib/data/games";
 import { getPlatforms } from "@/lib/data/taxonomy";
+import { pagedMetadata } from "@/lib/paged-metadata";
 import { loadPageParams } from "@/lib/search-params";
 
 type Params = Promise<{ slug: string }>;
@@ -21,14 +22,22 @@ export async function generateStaticParams() {
   return platforms.map(({ slug }) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}): Promise<Metadata> {
   const platform = await findPlatform((await params).slug);
   if (!platform) return { title: "Platform not found" };
-  return {
+  const { page } = await loadPageParams(searchParams);
+  return pagedMetadata({
     title: `${platform.name} games in your browser`,
     description: `Games first released on ${platform.name}, ported to run in your browser.`,
-    alternates: { canonical: `/platforms/${platform.slug}` },
-  };
+    path: `/platforms/${platform.slug}`,
+    page,
+  });
 }
 
 export default function PlatformPage({
