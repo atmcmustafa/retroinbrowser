@@ -7,17 +7,36 @@ import { GameGridSkeleton } from "@/components/site/game-grid";
 import { PageHeading } from "@/components/site/page-heading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getGenres, getPlatforms } from "@/lib/data/taxonomy";
+import { pagedMetadata } from "@/lib/paged-metadata";
 import { loadCatalogParams, serializeCatalogParams } from "@/lib/search-params";
-
-export const metadata: Metadata = {
-  title: "All games",
-  description: "Search and filter every browser port of a classic game in the directory.",
-  alternates: { canonical: "/games" },
-};
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 type Genres = Awaited<ReturnType<typeof getGenres>>;
 type Platforms = Awaited<ReturnType<typeof getPlatforms>>;
+
+// Filtered and re-sorted views repeat games from the main list, so only that list gets paged
+// canonicals; the views themselves keep pointing at /games.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const params = await loadCatalogParams(searchParams);
+  const plain =
+    !params.q &&
+    !params.genre &&
+    !params.platform &&
+    !params.mobile &&
+    !params.gamepad &&
+    !params.nofiles &&
+    params.sort === "popular";
+  return pagedMetadata({
+    title: "All games",
+    description: "Search and filter every browser port of a classic game in the directory.",
+    path: "/games",
+    page: plain ? params.page : 1,
+  });
+}
 
 export default async function GamesPage({ searchParams }: { searchParams: SearchParams }) {
   const [genres, platforms] = await Promise.all([getGenres(), getPlatforms()]);

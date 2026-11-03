@@ -4,15 +4,24 @@ import { CatalogResults } from "@/components/site/catalog-results";
 import { GameGridSkeleton } from "@/components/site/game-grid";
 import { PageHeading } from "@/components/site/page-heading";
 import { allGames } from "@/lib/data/games";
+import { pagedMetadata } from "@/lib/paged-metadata";
 import { loadPageParams } from "@/lib/search-params";
 
-export const metadata: Metadata = {
-  title: "New games",
-  description: "The latest browser ports of classic games added to the directory.",
-  alternates: { canonical: "/new" },
-};
-
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const { page } = await loadPageParams(searchParams);
+  return pagedMetadata({
+    title: "New games",
+    description: "The latest browser ports of classic games added to the directory.",
+    path: "/new",
+    page,
+  });
+}
 
 export default function NewPage({ searchParams }: { searchParams: SearchParams }) {
   return (
