@@ -1,5 +1,5 @@
 # Checks every published game's link once a day (scripts/check-links.ts) and refreshes the
-# site's cache when a game breaks or comes back.
+# site's cache when a game breaks or comes back. Then tells IndexNow what changed that day.
 name: Check links
 
 on:
@@ -32,3 +32,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check-links
+      - if: ${{ !cancelled() }}
+        run: npm run indexnow -- --changed
