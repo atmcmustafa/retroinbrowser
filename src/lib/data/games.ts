@@ -2,6 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { toSearchTerm } from "@/lib/search";
 import type { CatalogSort } from "@/lib/search-params";
+import { slugify } from "@/lib/slug";
 import { createPublicClient } from "@/lib/supabase/server";
 
 export const cardColumns =
@@ -9,7 +10,9 @@ export const cardColumns =
 const featuredColumns = `${cardColumns}, hero_url, summary` as const;
 const genreCardColumns = `${cardColumns}, game_genres!inner(genre_id)` as const;
 const detailColumns =
-  `${cardColumns}, platform_id, play_url, source_url, developer, summary, description, tech, hero_url, link_status, published_at, genres:game_genres(genre:genres(id, slug, name, sort))` as const;
+  `${cardColumns}, platform_id, play_url, source_url, developer, summary, description, tech, hero_url, link_status, last_checked_at, published_at, genres:game_genres(genre:genres(id, slug, name, sort))` as const;
+const portColumns =
+  `${cardColumns}, developer, summary, tech, link_status, last_checked_at, updated_at` as const;
 
 // Cards embed platform names and colors, so taxonomy edits must expire these too.
 function cacheCatalog() {
@@ -150,6 +153,35 @@ export async function getGameBySlug(slug: string) {
 }
 
 export type GameDetail = NonNullable<Awaited<ReturnType<typeof getGameBySlug>>>;
+
+// A game with more than one port gets a comparison page, named after the original game.
+export async function getPortGroups() {
+  "use cache";
+  cacheCatalog();
+
+  const { data, error } = await createPublicClient()
+    .from("games")
+    .select(portColumns)
+    .eq("status", "published")
+    .order("click_count", { ascending: false })
+    .order("title")
+    .limit(5000);
+  if (error) throw error;
+
+  const groups = new Map<string, { slug: string; name: string; ports: typeof data }>();
+  for (const game of data) {
+    const slug = slugify(game.original_title);
+    const group = groups.get(slug);
+    if (group) group.ports.push(game);
+    else groups.set(slug, { slug, name: game.original_title, ports: [game] });
+  }
+  return [...groups.values()].filter(({ ports }) => ports.length > 1);
+}
+
+export async function getPortGroup(slug: string) {
+  const groups = await getPortGroups();
+  return groups.find((group) => group.slug === slug) ?? null;
+}
 
 export async function getSimilarGames(
   gameId: string,
