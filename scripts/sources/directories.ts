@@ -11,7 +11,7 @@ const MAX_PAGES_PER_RUN = 40;
 const PAGE_GAP_MS = 700;
 
 const notPort =
-  /(steampowered|gog\.com|wikipedia|youtube|youtu\.be|reddit|twitter|x\.com|bsky|discord|mastodon|facebook|instagram|tiktok|patreon|ko-fi|paypal|archive\.org|news\.ycombinator|pcgamingwiki|mobygames|tomshardware|kotaku|pcgamer|gamespot|ign\.com|eurogamer|polygon|theverge|arstechnica|hackaday|80\.lv|gamesradar|techspot|timeextension|xda-developers|notebookcheck|dexerto|nintendolife|tweaktown|wccftech|engadget|techradar|pcworld|rockpapershotgun|vg247|dsogaming|medium\.com|substack|twelve\.tools)/i;
+  /(steampowered|steamcommunity|gog\.com|igdb\.com|minecraft\.net|github\.com\/github\/dmca|awesome-decomp-games|torrentfreak|beebom|wikipedia|youtube|youtu\.be|reddit|twitter|x\.com|bsky|discord|mastodon|facebook|instagram|tiktok|patreon|ko-fi|paypal|archive\.org|news\.ycombinator|pcgamingwiki|mobygames|tomshardware|kotaku|pcgamer|gamespot|ign\.com|eurogamer|polygon|theverge|arstechnica|hackaday|80\.lv|gamesradar|techspot|timeextension|xda-developers|notebookcheck|dexerto|nintendolife|tweaktown|wccftech|engadget|techradar|pcworld|rockpapershotgun|vg247|dsogaming|medium\.com|substack|twelve\.tools)/i;
 const repoHost = /(^|\.)(github\.com|gitlab\.com|codeberg\.org)$/i;
 
 export type IndexEntry = { name: string; page: string };
@@ -28,20 +28,22 @@ export function parseIndex(text: string): IndexEntry[] {
   return [...entries.values()];
 }
 
-// An entry page links the live port among its sources; prefer the link labelled as such, then
-// anything that isn't a store, a repo or an article.
+const imageCredit = /©|\bvia\b|image credit|cover art|key art|artwork|screenshot/i;
+
+// An entry page has a button for the live port, and its other links are sources that often name
+// the original game's site. So a button wins, then anything that isn't a store, a repo or an article.
 export function pickPortLink(html: string, pageUrl: string): string | null {
   const own = new URL(pageUrl).hostname;
   const links: { href: string; label: string }[] = [];
   for (const [, href, label] of html.matchAll(
     /<a\b[^>]*href="(https?:[^"]+)"[^>]*>([\s\S]*?)<\/a>/g,
   )) {
-    if (URL.parse(href)?.hostname === own || notPort.test(href)) continue;
-    links.push({ href: decodeEntities(href), label: label.replace(/<[^>]+>/g, " ") });
+    const text = label.replace(/<[^>]+>/g, " ").trim();
+    if (URL.parse(href)?.hostname === own || notPort.test(href) || imageCredit.test(text)) continue;
+    links.push({ href: decodeEntities(href), label: text });
   }
-  const live = links.find(({ label }) =>
-    /live page|live site|official site|^\s*play\b/i.test(label),
-  );
+  const labelled = (pattern: RegExp) => links.find(({ label }) => pattern.test(label));
+  const live = labelled(/^\W*play\b/i) ?? labelled(/^\W*website\b|live page|live site/i);
   const isRepo = ({ href }: { href: string }) => repoHost.test(URL.parse(href)?.hostname ?? "");
   return (live ?? links.find((link) => !isRepo(link)) ?? links.find(isRepo))?.href ?? null;
 }

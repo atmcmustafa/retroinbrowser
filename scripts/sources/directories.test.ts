@@ -26,6 +26,26 @@ test("pickPortLink prefers the labelled live page", () => {
   assert.equal(pickPortLink(html, "https://dir.example/lugaru/"), "https://port.example/play/");
 });
 
+test("pickPortLink takes the play button first, then the website button", () => {
+  const playButtons = `
+    <a href="https://www.igdb.com/games/x">Artwork, via IGDB</a>
+    <a href="https://play.port.example/">▶ Play The Game (Web Edition) ↗</a>
+    <a href="https://port.example">Play ↗</a>
+    <a href="https://github.com/a/b">GitHub ↗</a>`;
+  assert.equal(pickPortLink(playButtons, "https://dir.example/x/"), "https://play.port.example/");
+  const websiteButton = `
+    <a href="https://original.example/media.html">Screenshot © The Project</a>
+    <a href="https://port.example/">Website ↗</a>
+    <a href="https://github.com/a/b">GitHub ↗</a>
+    <a href="https://original.example/download.html">original.example (official site)</a>`;
+  assert.equal(pickPortLink(websiteButton, "https://dir.example/x/"), "https://port.example/");
+});
+
+test("pickPortLink ignores image credits", () => {
+  const onlyCredit = `<a href="https://art.example/">Key art © Someone</a>`;
+  assert.equal(pickPortLink(onlyCredit, "https://dir.example/x/"), null);
+});
+
 test("pickPortLink falls back to a non-repo link, then the repo, and skips articles", () => {
   const articleThenSite = `
     <a href="https://kotaku.com/story">Kotaku</a>
