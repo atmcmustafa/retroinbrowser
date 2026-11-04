@@ -1,13 +1,14 @@
 import type { MetadataRoute } from "next";
-import { getCatalogCounts, getSitemapGames } from "@/lib/data/games";
+import { getCatalogCounts, getPortGroups, getSitemapGames } from "@/lib/data/games";
 import { getGenres, getPlatforms } from "@/lib/data/taxonomy";
 import { env } from "@/lib/env";
 
 const absolute = (path: string) => new URL(path, env.NEXT_PUBLIC_SITE_URL).href;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [games, counts, genres, platforms] = await Promise.all([
+  const [games, groups, counts, genres, platforms] = await Promise.all([
     getSitemapGames(),
+    getPortGroups(),
     getCatalogCounts(),
     getGenres(),
     getPlatforms(),
@@ -25,6 +26,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: updated_at,
       changeFrequency: "weekly" as const,
       priority: 0.8,
+    })),
+    ...groups.map(({ slug, ports }) => ({
+      url: absolute(`/play/${slug}`),
+      lastModified: ports
+        .map(({ updated_at }) => updated_at)
+        .sort()
+        .at(-1),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
     })),
     ...genres
       .filter(({ id }) => counts.genres[id])

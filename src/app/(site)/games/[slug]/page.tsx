@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CodeIcon, ExternalLinkIcon } from "lucide-react";
+import { ArrowRightIcon, CodeIcon, ExternalLinkIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,13 +11,15 @@ import { badgesFor } from "@/components/site/game-badges";
 import { GameRow } from "@/components/site/game-row";
 import { InfoBox } from "@/components/site/info-box";
 import { JsonLd } from "@/components/site/json-ld";
+import { LinkCheck } from "@/components/site/link-check";
 import { RichText } from "@/components/site/rich-text";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getGameBySlug, getPublishedSlugs, getSimilarGames } from "@/lib/data/games";
+import { getGameBySlug, getPortGroup, getPublishedSlugs, getSimilarGames } from "@/lib/data/games";
 import { env } from "@/lib/env";
 import { originalPlatform } from "@/lib/platform-name";
 import { baseOpenGraph } from "@/lib/site";
+import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
@@ -76,6 +78,7 @@ async function GameDetail({
     game.platform_id,
     7,
   );
+  const group = await getPortGroup(slugify(game.original_title));
   const badges = badgesFor(game);
   const host = new URL(game.play_url).hostname.replace(/^www\./, "");
   const absolute = (path: string) => new URL(path, env.NEXT_PUBLIC_SITE_URL).href;
@@ -174,6 +177,15 @@ async function GameDetail({
           <p className="mt-3 text-lg text-muted-foreground">
             A browser port of <span className="text-foreground">{game.original_title}</span>
           </p>
+          {group && (
+            <Link
+              href={`/play/${group.slug}`}
+              className="mt-2 inline-flex items-center gap-1 rounded-sm text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+            >
+              Compare all {group.ports.length} ports of {group.name}
+              <ArrowRightIcon aria-hidden className="size-3.5" />
+            </Link>
+          )}
 
           {badges.length > 0 && (
             <ul className="mt-5 flex flex-wrap gap-2">
@@ -211,10 +223,8 @@ async function GameDetail({
             )}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Play opens {host} in a new tab.
-            {game.link_status === "broken" && (
-              <span className="text-destructive"> It didn&apos;t respond at our last check.</span>
-            )}
+            Play opens {host} in a new tab.{" "}
+            <LinkCheck status={game.link_status} checkedAt={game.last_checked_at} />
           </p>
 
           <dl className="mt-8 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-5 text-sm sm:grid-cols-3">
