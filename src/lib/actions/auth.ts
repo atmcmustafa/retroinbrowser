@@ -1,10 +1,12 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { safeNextPath } from "@/lib/auth";
 import { oauthProviders } from "@/lib/auth-providers";
 import { env } from "@/lib/env";
+import { safeNextPath } from "@/lib/safe-next-path";
+import { SESSION_HINT } from "@/lib/session-hint";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState =
@@ -93,8 +95,9 @@ export async function signInWithProvider(formData: FormData) {
   redirect(data.url);
 }
 
+// No redirect: the caller resets the signed-in parts kept in client state, then navigates.
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut({ scope: "local" });
-  redirect("/");
+  (await cookies()).delete(SESSION_HINT);
 }

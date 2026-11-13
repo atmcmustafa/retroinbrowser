@@ -1,6 +1,5 @@
 "use server";
 
-import { updateTag } from "next/cache";
 import { z } from "zod";
 import { getCurrentUser, requireAdmin } from "@/lib/auth";
 import { COMMENT_MAX_LENGTH, COMMENT_MAX_TAGS, commentTagKeys } from "@/lib/comments";
@@ -45,7 +44,8 @@ const problemMessages = {
 
 // Signed-in users can't write to the comments table (see the comments_open migration), so the
 // checks here can't be skipped by calling the database directly. Both actions write with the
-// secret key after checking who is asking.
+// secret key after checking who is asking. Game pages load comments from /api/comments, so no
+// cache needs expiring, and without updateTag an action doesn't re-render the page.
 export async function postComment(input: {
   gameId: string;
   body: string;
@@ -87,7 +87,6 @@ export async function postComment(input: {
     return { ok: false, message: "Couldn't post your comment. Try again." };
   }
 
-  updateTag(`comments:${gameId}`);
   return { ok: true };
 }
 
@@ -100,7 +99,7 @@ export async function deleteComment(id: string): Promise<CommentResult> {
   const admin = createAdminClient();
   const { data: comment, error } = await admin
     .from("comments")
-    .select("user_id, game_id")
+    .select("user_id")
     .eq("id", parsed.data)
     .is("deleted_at", null)
     .maybeSingle();
@@ -123,7 +122,6 @@ export async function deleteComment(id: string): Promise<CommentResult> {
     return { ok: false, message: "Couldn't delete the comment. Try again." };
   }
 
-  updateTag(`comments:${comment.game_id}`);
   return { ok: true };
 }
 
@@ -151,14 +149,11 @@ export async function setCommentsDeleted(
           .update({ deleted_at: null, deleted_by: null })
           .in("id", parsed.data.ids)
           .eq("deleted_by", "admin")
-  ).select("id, game_id");
+  ).select("id");
   if (error) {
     console.error("Moderating comments failed", error);
     return { ok: false, message: "Couldn't update the comments. Try again." };
   }
 
-  for (const gameId of new Set(data.map(({ game_id }) => game_id))) {
-    updateTag(`comments:${gameId}`);
-  }
   return { ok: true, ids: data.map(({ id }) => id) };
 }

@@ -1,14 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { InfoBox } from "@/components/site/info-box";
+import { useSession } from "@/components/site/session-provider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCurrentUser } from "@/lib/auth";
 
 const link = "rounded-sm font-medium text-foreground underline underline-offset-2";
 
-export async function LibraryBox() {
-  const user = await getCurrentUser();
+export function LibraryBox() {
+  const session = useSession();
+  if (session.status === "loading") return <LibraryBoxSkeleton />;
 
-  if (!user) {
+  if (!session.user) {
     return (
       <InfoBox label="Keep your games">
         <Link href="/login" className={link}>

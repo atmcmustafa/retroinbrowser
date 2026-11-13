@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { FeaturedHero } from "@/components/site/featured-hero";
 import { JsonLd } from "@/components/site/json-ld";
 import { GameRow } from "@/components/site/game-row";
 import { GenreGrid } from "@/components/site/genre-grid";
 import { InfoBox } from "@/components/site/info-box";
-import { LibraryBox, LibraryBoxSkeleton } from "@/components/site/library-box";
+import { LibraryBox } from "@/components/site/library-box";
 import { PageHeading } from "@/components/site/page-heading";
 import { PlatformChips } from "@/components/site/platform-chips";
 import {
@@ -101,9 +100,7 @@ export default async function HomePage() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Suspense fallback={<LibraryBoxSkeleton />}>
-          <LibraryBox />
-        </Suspense>
+        <LibraryBox />
         <InfoBox label="No game files here">
           RetroInBrowser lists browser ports and links to each one&apos;s own site. Some ports need
           files from a copy of the game you own.

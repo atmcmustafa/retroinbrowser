@@ -1,15 +1,18 @@
+"use client";
+
 import { HeartIcon } from "lucide-react";
 import Link from "next/link";
 import { FavoriteButton } from "@/components/site/favorite-button";
+import { useSession } from "@/components/site/session-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCurrentUser } from "@/lib/auth";
-import { isFavorite } from "@/lib/data/library";
 
-// The only per-user part of a game page; it streams in after the cached page shell.
-export async function FavoriteControl({ gameId, slug }: { gameId: string; slug: string }) {
-  const user = await getCurrentUser();
-  if (!user) {
+// The only per-user part of a game page's header; the page itself is static.
+export function FavoriteControl({ gameId, slug }: { gameId: string; slug: string }) {
+  const session = useSession();
+  if (session.status === "loading") return <FavoriteControlSkeleton />;
+
+  if (!session.user) {
     return (
       <Button asChild size="lg" variant="outline">
         <Link href={`/login?next=${encodeURIComponent(`/games/${slug}`)}`}>
@@ -20,7 +23,13 @@ export async function FavoriteControl({ gameId, slug }: { gameId: string; slug: 
     );
   }
 
-  return <FavoriteButton gameId={gameId} initialSaved={await isFavorite(user.id, gameId)} />;
+  return (
+    <FavoriteButton
+      gameId={gameId}
+      saved={session.isFavorite(gameId)}
+      onChange={(saved) => session.markFavorite(gameId, saved)}
+    />
+  );
 }
 
 export function FavoriteControlSkeleton() {

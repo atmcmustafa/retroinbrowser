@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,16 +15,7 @@ import {
 } from "@/lib/comments";
 import { cn } from "@/lib/utils";
 
-export function CommentForm({
-  gameId,
-  slug,
-  page,
-}: {
-  gameId: string;
-  slug: string;
-  page: number;
-}) {
-  const router = useRouter();
+export function CommentForm({ gameId, onPosted }: { gameId: string; onPosted: () => void }) {
   const [body, setBody] = useState("");
   const [tags, setTags] = useState<CommentTag[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +35,7 @@ export function CommentForm({
       setTags([]);
       setError(null);
       toast.success("Comment posted.");
-      // Newest come first, so a comment posted from a later page shows up on the first one.
-      if (page > 1) router.push(`/games/${slug}#comments-list`);
+      onPosted();
     });
   }
 

@@ -29,13 +29,13 @@ export async function getRecentlyPlayed(userId: string, limit: number) {
   return data.map(({ game, played_at }) => ({ ...game, played_at }));
 }
 
-export async function isFavorite(userId: string, gameId: string) {
+export async function getFavoriteIds(userId: string) {
   const supabase = await createClient();
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from("favorites")
-    .select("game_id", { count: "exact", head: true })
+    .select("game_id")
     .eq("user_id", userId)
-    .eq("game_id", gameId);
+    .limit(1000);
   if (error) throw error;
-  return Boolean(count);
+  return data.map(({ game_id }) => game_id);
 }

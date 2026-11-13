@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { safeNextPath } from "@/lib/auth";
+import { safeNextPath } from "@/lib/safe-next-path";
+import { SESSION_HINT, sessionHintMaxAge } from "@/lib/session-hint";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -13,7 +14,16 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(next, request.url));
+    if (!error) {
+      const response = NextResponse.redirect(new URL(next, request.url));
+      response.cookies.set(SESSION_HINT, "1", {
+        path: "/",
+        sameSite: "lax",
+        secure: request.nextUrl.protocol === "https:",
+        maxAge: sessionHintMaxAge,
+      });
+      return response;
+    }
     failure = error.code ?? error.message;
   }
   // Logged, never shown: error_description is whatever text the URL carries.

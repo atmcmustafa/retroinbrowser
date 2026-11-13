@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { clearPlayHistory } from "@/lib/actions/library";
 
-export function ClearHistoryButton() {
+export function ClearHistoryButton({ onCleared }: { onCleared: () => void }) {
   const [pending, startTransition] = useTransition();
 
   return (
@@ -17,7 +17,8 @@ export function ClearHistoryButton() {
       onClick={() =>
         startTransition(async () => {
           const result = await clearPlayHistory();
-          if (!result.ok) toast.error(result.message);
+          if (result.ok) onCleared();
+          else toast.error(result.message);
         })
       }
     >
