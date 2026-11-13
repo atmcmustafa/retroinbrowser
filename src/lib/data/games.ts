@@ -1,5 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { CATALOG_PAGE_SIZE } from "@/lib/catalog-filter";
 import { toSearchTerm } from "@/lib/search";
 import type { CatalogSort } from "@/lib/search-params";
 import { slugify } from "@/lib/slug";
@@ -228,8 +229,6 @@ export async function getSimilarGames(
   return similar.slice(0, limit);
 }
 
-export const CATALOG_PAGE_SIZE = 36;
-
 export type CatalogQuery = {
   q: string;
   genreId: number | null;
@@ -299,22 +298,28 @@ export async function searchCatalog(query: CatalogQuery) {
   return { games: data, total: count ?? 0 };
 }
 
-export async function getSearchIndex() {
+// Every published game with what /games filters on, in Popular order (the same order as
+// searchCatalog). The search page and the search palette both filter it in the browser.
+export async function getCatalogIndex() {
   "use cache";
   cacheCatalog();
 
   const { data, error } = await createPublicClient()
     .from("games")
-    .select("slug, title, original_title, cover_url, platform:platforms(name)")
+    .select(`${cardColumns}, developer, published_at, genres:game_genres(genre_id)`)
     .eq("status", "published")
     .order("click_count", { ascending: false })
+    .order("published_at", { ascending: false })
     .order("title")
-    .limit(2000);
+    .limit(5000);
   if (error) throw error;
-  return data.map(({ platform, ...game }) => ({ ...game, platform: platform?.name ?? null }));
+  return data.map(({ genres, ...game }) => ({
+    ...game,
+    genre_ids: genres.map(({ genre_id }) => genre_id),
+  }));
 }
 
-export type SearchEntry = Awaited<ReturnType<typeof getSearchIndex>>[number];
+export type CatalogEntry = Awaited<ReturnType<typeof getCatalogIndex>>[number];
 
 export async function getSitemapGames() {
   "use cache";

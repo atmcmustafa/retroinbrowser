@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  FolderXIcon,
-  Gamepad2Icon,
-  Loader2Icon,
-  SearchIcon,
-  SmartphoneIcon,
-  XIcon,
-} from "lucide-react";
+import { FolderXIcon, Gamepad2Icon, SearchIcon, SmartphoneIcon, XIcon } from "lucide-react";
 import { debounce, useQueryStates } from "nuqs";
-import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import {
@@ -39,8 +31,8 @@ const toggles = [
 ] as const;
 
 export function CatalogFilters({ genres, platforms }: { genres: Option[]; platforms: Option[] }) {
-  const [pending, startTransition] = useTransition();
-  const [filters, setFilters] = useQueryStates(catalogParams, { shallow: false, startTransition });
+  // Shallow: CatalogBrowser filters in the browser, so the URL changes without a server request.
+  const [filters, setFilters] = useQueryStates(catalogParams);
 
   // Any filter change starts over at page 1.
   const update = (values: Partial<Omit<typeof filters, "page">>) =>
@@ -59,7 +51,7 @@ export function CatalogFilters({ genres, platforms }: { genres: Option[]; platfo
       <div className="flex gap-2">
         <InputGroup className="flex-1">
           <InputGroupAddon>
-            {pending ? <Loader2Icon className="animate-spin" /> : <SearchIcon />}
+            <SearchIcon />
           </InputGroupAddon>
           <InputGroupInput
             type="search"

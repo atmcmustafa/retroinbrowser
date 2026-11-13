@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CATALOG_PAGE_SIZE } from "@/lib/data/games";
+import { CATALOG_PAGE_SIZE } from "@/lib/catalog-filter";
 
 // Paged lists keep page 2 onward in the path (/popular/page/2), so each page's metadata is known
 // at build time and sits in the static <head>. With ?page=N it streamed into <body>, and only a
