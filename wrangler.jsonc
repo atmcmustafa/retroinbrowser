@@ -15,6 +15,8 @@
     { "pattern": "retroinbrowser.com", "custom_domain": true },
     { "pattern": "www.retroinbrowser.com", "custom_domain": true },
   ],
+  // Only the custom domains: a workers.dev copy would be a second, unredirected site.
+  "workers_dev": false,
   "observability": { "enabled": true },
   // Runtime secrets (wrangler secret put): SUPABASE_SECRET_KEY, TURNSTILE_SECRET_KEY.
   // NEXT_PUBLIC_* values are built into the bundle from the deploy workflow's env.
