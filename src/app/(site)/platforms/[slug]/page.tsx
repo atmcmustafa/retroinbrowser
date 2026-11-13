@@ -1,89 +1,35 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { CatalogResults } from "@/components/site/catalog-results";
-import { FilterLink, ListingSkeleton } from "@/components/site/listing";
-import { PageHeading } from "@/components/site/page-heading";
-import { allGames } from "@/lib/data/games";
+import { ListingSkeleton } from "@/components/site/listing";
+import { findPlatform, PlatformList, platformMetadata } from "@/components/site/paged-lists";
 import { getPlatforms } from "@/lib/data/taxonomy";
-import { pagedMetadata } from "@/lib/paged-metadata";
-import { loadPageParams } from "@/lib/search-params";
 
 type Params = Promise<{ slug: string }>;
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-async function findPlatform(slug: string) {
-  const platforms = await getPlatforms();
-  return platforms.find((platform) => platform.slug === slug) ?? null;
-}
 
 export async function generateStaticParams() {
   const platforms = await getPlatforms();
   return platforms.map(({ slug }) => ({ slug }));
 }
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const platform = await findPlatform((await params).slug);
   if (!platform) return { title: "Platform not found" };
-  const { page } = await loadPageParams(searchParams);
-  return pagedMetadata({
-    title: `${platform.name} games in your browser`,
-    description: `Games first released on ${platform.name}, ported to run in your browser.`,
-    path: `/platforms/${platform.slug}`,
-    query: { ...allGames, platformId: platform.id, sort: "popular", page },
-  });
+  return platformMetadata(platform, 1);
 }
 
-export default function PlatformPage({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}) {
+export default function PlatformPage({ params }: { params: Params }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
       <Suspense fallback={<ListingSkeleton />}>
-        <Platform params={params} searchParams={searchParams} />
+        <Platform params={params} />
       </Suspense>
     </div>
   );
 }
 
-async function Platform({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+async function Platform({ params }: { params: Params }) {
   const platform = await findPlatform((await params).slug);
   if (!platform) notFound();
-  const { page } = await loadPageParams(searchParams);
-  const path = `/platforms/${platform.slug}`;
-
-  return (
-    <>
-      <PageHeading
-        title={
-          <span className="inline-flex items-center gap-4">
-            <span
-              aria-hidden
-              className="size-4 shrink-0 rounded-full sm:size-5"
-              style={{ backgroundColor: platform.color }}
-            />
-            {platform.name}
-          </span>
-        }
-        description={`Games first released on ${platform.name}, ported to run in your browser.`}
-      />
-      <FilterLink href={`/games?platform=${platform.slug}`} />
-      <div className="mt-10">
-        <CatalogResults
-          query={{ ...allGames, platformId: platform.id, sort: "popular", page: Math.max(1, page) }}
-          hrefFor={(target) => (target > 1 ? `${path}?page=${target}` : path)}
-        />
-      </div>
-    </>
-  );
+  return <PlatformList platform={platform} page={1} />;
 }

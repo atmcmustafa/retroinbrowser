@@ -29,8 +29,6 @@ export const pageParams = {
   page: parseAsInteger.withDefault(1),
 };
 
-export const loadPageParams = createLoader(pageParams);
-
 export const catalogParams = {
   q: parseAsString.withDefault(""),
   genre: parseAsString,
