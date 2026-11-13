@@ -29,8 +29,6 @@ export const pageParams = {
   page: parseAsInteger.withDefault(1),
 };
 
-export const loadPageParams = createLoader(pageParams);
-
 export const catalogParams = {
   q: parseAsString.withDefault(""),
   genre: parseAsString,
@@ -41,15 +39,6 @@ export const catalogParams = {
   sort: parseAsStringLiteral(catalogSorts).withDefault("popular"),
   ...pageParams,
 };
-
-export const loadCatalogParams = createLoader(catalogParams);
-export const serializeCatalogParams = createSerializer(catalogParams);
-
-export const commentPageParams = {
-  comments: parseAsInteger.withDefault(1),
-};
-
-export const loadCommentPageParams = createLoader(commentPageParams);
 
 export const adminCommentStatuses = ["visible", "deleted"] as const;
 

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { AdminNav, AdminNavLinks } from "@/components/admin/admin-nav";
+import { SignOutButton } from "@/components/site/sign-out-button";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
-import { signOut } from "@/lib/actions/auth";
 
 export const metadata: Metadata = {
   title: { default: "Admin", template: "%s · Admin" },
@@ -34,11 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Button asChild variant="ghost" size="sm">
               <Link href="/">View site</Link>
             </Button>
-            <form action={signOut}>
-              <Button type="submit" variant="ghost" size="sm">
-                Sign out
-              </Button>
-            </form>
+            <SignOutButton variant="ghost" size="sm" />
           </div>
         </div>
       </header>

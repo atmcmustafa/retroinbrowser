@@ -3,11 +3,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { after } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { isSteamGridArtwork } from "@/lib/images";
-import { submitToIndexNow } from "@/lib/indexnow";
+import { requestDeploy } from "@/lib/deploy";
 import { gameSchema, type GameInput } from "@/lib/schemas/game";
 import { importArtwork, removeArtwork } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
@@ -107,11 +106,6 @@ export async function saveGame(
 
   const gameId = saved.data.id;
   updateTag("games");
-  const changedPublic = [
-    values.status === "published" ? values.slug : null,
-    previous?.status === "published" ? previous.slug : null,
-  ].filter((slug) => slug !== null);
-  if (changedPublic.length) after(() => submitToIndexNow(publicPaths(changedPublic)));
   if (!id && candidateId) await approveCandidate(supabase, candidateId, gameId, admin.id);
 
   if (!(await syncGenres(supabase, gameId, genre_ids))) {
@@ -129,10 +123,6 @@ export async function saveGame(
 }
 
 // A game going live, changing or going away also changes the home page and the New list.
-function publicPaths(slugs: string[]) {
-  return ["/", "/new", ...slugs.map((slug) => `/games/${slug}`)];
-}
-
 // The game is already saved; a failed link only leaves the candidate pending, so just log it.
 async function approveCandidate(
   supabase: SupabaseClient<Database>,
@@ -194,7 +184,6 @@ export async function deleteGame(id: string): Promise<{ ok: false; message: stri
   if (data) await removeArtwork(supabase, [data.cover_url, data.hero_url]);
 
   updateTag("games");
-  if (data?.status === "published") after(() => submitToIndexNow(publicPaths([data.slug])));
   redirect("/admin/games");
 }
 
@@ -225,14 +214,14 @@ export async function setGamesStatus(
   }
 
   updateTag("games");
-  if (data.length) after(() => submitToIndexNow(publicPaths(data.map(({ slug }) => slug))));
   return { ok: true, count: data.length };
 }
 
-// For edits made outside these actions (SQL, scripts, the Supabase dashboard).
-export async function refreshPublicCache() {
+// The admin runs locally and the live site is static, so changes go live with the next deploy:
+// daily after the link check, or now with this. The deploy also tells IndexNow what changed.
+export async function publishSite() {
   await requireAdmin();
   updateTag("games");
   updateTag("taxonomy");
-  updateTag("comments");
+  return requestDeploy();
 }

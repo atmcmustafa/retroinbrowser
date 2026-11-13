@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { SessionProvider } from "@/components/site/session-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { env } from "@/lib/env";
 import { baseOpenGraph, siteDescription, siteName } from "@/lib/site";
@@ -30,7 +31,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className={`dark ${inter.variable} ${archivo.variable}`}>
       <body>
         <NuqsAdapter>
-          <TooltipProvider>{children}</TooltipProvider>
+          <SessionProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+          </SessionProvider>
         </NuqsAdapter>
       </body>
     </html>

@@ -3,7 +3,7 @@
 import { LogOutIcon, ShieldIcon, UserIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useSignOut } from "@/components/site/sign-out-button";
 import { UserAvatar } from "@/components/site/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { signOut } from "@/lib/actions/auth";
 
 type AccountUser = { name: string; email: string | null; avatar: string | null; isAdmin: boolean };
 
@@ -33,7 +32,7 @@ export function SignInButton() {
 }
 
 export function AccountMenu({ user }: { user: AccountUser }) {
-  const [pending, startTransition] = useTransition();
+  const [pending, signOut] = useSignOut();
 
   return (
     <DropdownMenu>
@@ -63,7 +62,7 @@ export function AccountMenu({ user }: { user: AccountUser }) {
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled={pending} onSelect={() => startTransition(() => signOut())}>
+        <DropdownMenuItem disabled={pending} onSelect={signOut}>
           <LogOutIcon />
           Sign out
         </DropdownMenuItem>

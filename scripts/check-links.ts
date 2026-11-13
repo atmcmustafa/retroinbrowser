@@ -4,7 +4,6 @@ import { classify, fingerprint, type CheckResult, type Verdict } from "./lib/cla
 import { createScriptClient } from "./lib/db";
 import { fetchPage, htmlToText, pageTitle } from "./lib/http";
 import { notifyDiscord } from "./lib/notify";
-import { revalidateSite } from "./lib/revalidate";
 
 const CONCURRENCY = 4;
 // A failed link gets a second try in the same run: two failures mark it broken the same day,
@@ -103,7 +102,6 @@ async function main() {
 
   const now = new Date().toISOString();
   const alerts: string[] = [];
-  let publicChange = false;
   for (const game of games) {
     const { result, verdict, reason, print } = checks.get(game.id)!;
     const update: TablesUpdate<"games"> = { last_checked_at: now };
@@ -130,10 +128,7 @@ async function main() {
       update.page_title = result.title ?? game.page_title;
     }
 
-    if (status !== game.link_status) {
-      update.link_status = status;
-      if (status === "broken" || game.link_status === "broken") publicChange = true;
-    }
+    if (status !== game.link_status) update.link_status = status;
     const flagged = stored === "changed" || stored === "taken_down";
     if (
       (status !== game.link_status && (status === "broken" || game.link_status === "broken")) ||
@@ -177,7 +172,6 @@ async function main() {
       new URL("/admin/games", env.NEXT_PUBLIC_SITE_URL).href,
     ]);
   }
-  if (publicChange) await revalidateSite();
   console.log(`Checked ${games.length} games; ${alerts.length} status changes to review.`);
 }
 

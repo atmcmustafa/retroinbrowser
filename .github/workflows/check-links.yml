@@ -1,5 +1,5 @@
-# Checks every published game's link once a day (scripts/check-links.ts) and refreshes the
-# site's cache when a game breaks or comes back. Then tells IndexNow what changed that day.
+# Checks every published game's link once a day (scripts/check-links.ts). The Deploy workflow
+# runs when this finishes, so the live site shows the new link statuses.
 name: Check links
 
 on:
@@ -22,7 +22,6 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-      REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
       - uses: actions/checkout@v7
@@ -32,5 +31,3 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check-links
-      - if: ${{ !cancelled() }}
-        run: npm run indexnow -- --changed

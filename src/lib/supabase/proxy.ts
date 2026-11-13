@@ -1,9 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { SESSION_HINT, sessionHintMaxAge } from "@/lib/session-hint";
 import { authCookieOptions } from "@/lib/supabase/cookie-options";
 import type { Database } from "@/types/database";
 
+const localHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
 export async function updateSession(request: NextRequest) {
+  // The admin runs on the owner's machine (npm run dev against the live database). Its pages
+  // render per request, which the free Workers plan can't afford, so the live site has none;
+  // requireAdmin() still guards every page and action wherever they run.
+  if (request.nextUrl.pathname.startsWith("/admin") && !localHosts.has(request.nextUrl.hostname)) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(
@@ -35,7 +45,7 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/login";
     url.search = "";
     url.searchParams.set("next", pathname + request.nextUrl.search);
-    return NextResponse.redirect(url);
+    return syncSessionHint(request, NextResponse.redirect(url), false);
   }
 
   if (userId && pathname.startsWith("/admin")) {
@@ -50,5 +60,20 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  return syncSessionHint(request, response, Boolean(userId));
+}
+
+// Keeps the readable flag in step with the session: set while it's valid, dropped once it isn't.
+function syncSessionHint(request: NextRequest, response: NextResponse, signedIn: boolean) {
+  const hinted = request.cookies.has(SESSION_HINT);
+  if (signedIn && !hinted) {
+    response.cookies.set(SESSION_HINT, "1", {
+      path: "/",
+      sameSite: "lax",
+      secure: request.nextUrl.protocol === "https:",
+      maxAge: sessionHintMaxAge,
+    });
+  }
+  if (!signedIn && hinted) response.cookies.delete(SESSION_HINT);
   return response;
 }

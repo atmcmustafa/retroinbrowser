@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { deleteComment } from "@/lib/actions/comments";
 
-export function DeleteCommentButton({ id }: { id: string }) {
+export function DeleteCommentButton({ id, onDeleted }: { id: string; onDeleted: () => void }) {
   const [pending, startTransition] = useTransition();
 
   return (
@@ -44,7 +44,8 @@ export function DeleteCommentButton({ id }: { id: string }) {
             onClick={() =>
               startTransition(async () => {
                 const result = await deleteComment(id);
-                if (!result.ok) toast.error(result.message);
+                if (result.ok) onDeleted();
+                else toast.error(result.message);
               })
             }
           >

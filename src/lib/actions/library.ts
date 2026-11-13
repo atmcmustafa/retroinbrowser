@@ -1,6 +1,5 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -38,6 +37,5 @@ export async function clearPlayHistory(): Promise<LibraryResult> {
     console.error("Clearing play history failed", error);
     return { ok: false, message: "Couldn't clear the list. Try again." };
   }
-  refresh();
   return { ok: true };
 }

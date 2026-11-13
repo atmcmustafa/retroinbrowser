@@ -4,7 +4,7 @@ import { createScriptClient } from "./lib/db";
 
 // Admin edits ping IndexNow on their own; this covers everything else.
 //   npm run indexnow               every sitemap URL, for a first submission
-//   npm run indexnow -- --changed  games changed lately by any means; check-links.yml runs it daily
+//   npm run indexnow -- --changed  games changed lately by any means; deploy.yml runs it after each deploy
 //   add --dry-run to print the URLs instead of sending them
 // By hand, against the live site: NEXT_PUBLIC_SITE_URL=https://retroinbrowser.com npm run indexnow
 

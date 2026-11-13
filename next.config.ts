@@ -9,7 +9,8 @@ const supabase = new URL(supabaseUrl);
 
 // Local values (localhost, Cloudflare's Turnstile test keys) build fine but send sign-ins back to
 // localhost and let every bot through /submit, so a production deploy with them must not build.
-if (process.env.VERCEL_ENV === "production") {
+// The deploy workflow sets SITE_DEPLOY.
+if (process.env.SITE_DEPLOY === "production") {
   const testKey = /^[123]x0+[A-F]{2}$/;
   const problems = [
     !process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") && "NEXT_PUBLIC_SITE_URL isn't https",
@@ -56,30 +57,40 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
-  // Next's default list plus Googlebot, so paged lists' canonical tags stay in <head> for it
-  // instead of streaming into <body>, where Google's documentation says it ignores them.
-  htmlLimitedBots:
-    /Googlebot|[\w-]+-Google|Google-[\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight/i,
-  // OG images read these with fs at runtime; make sure Vercel ships them with those routes.
-  outputFileTracingIncludes: {
-    "/opengraph-image": ["./assets/fonts/*.ttf"],
-    "/games/*/opengraph-image": ["./assets/fonts/*.ttf"],
-  },
+  // A matching user agent skips the static page and gets a full render on every request, more
+  // CPU than a free Workers request allows. Every public page is built on deploy with its
+  // metadata in <head>, so no crawler or link preview needs one; this pattern matches no one.
+  htmlLimitedBots: /^RetroInBrowser-no-blocking-render$/,
   images: {
-    // Every optimized image counts against Vercel's monthly quota, so only our own bucket is
-    // allowed; a wildcard would let anyone run other images through /_next/image.
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: supabase.hostname,
-        port: "",
-        pathname: "/storage/v1/object/public/covers/**",
-        search: "",
-      },
-    ],
+    // Each width is its own transformation, and every width lands in each card's srcset; the
+    // defaults (15 widths) made the home page HTML 400 KB. These cover the sizes props in use
+    // (32 px thumbnails to the 1120 px hero) at 1x to 3x.
+    deviceSizes: [640, 828, 1200, 1920],
+    imageSizes: [64, 128, 256, 384],
+    // Resized by Cloudflare at the edge (src/lib/image-loader.ts). Only the Supabase host is an
+    // allowed source in the zone's settings, so nobody else's images go through our quota.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
   },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
+  },
+  async redirects() {
+    // Paged lists moved from ?page=N to /page/N; the old links may already be indexed.
+    const page = { type: "query" as const, key: "page", value: "(?<page>[2-9]|[1-9]\\d+)" };
+    const pages = ["/popular", "/new", "/genres/:slug", "/platforms/:slug"].map((source) => ({
+      source,
+      has: [page],
+      destination: `${source}/page/:page`,
+      permanent: true,
+    }));
+    const www = {
+      source: "/:path*",
+      has: [{ type: "host" as const, value: "www.retroinbrowser.com" }],
+      destination: "https://retroinbrowser.com/:path*",
+      permanent: true,
+    };
+    return [www, ...pages];
   },
   turbopack: {
     rules: {

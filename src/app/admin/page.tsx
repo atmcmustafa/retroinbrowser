@@ -2,7 +2,7 @@ import { EyeOffIcon, PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/page-header";
-import { RefreshCacheButton } from "@/components/admin/refresh-cache-button";
+import { PublishSiteButton } from "@/components/admin/publish-site-button";
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminStats } from "@/lib/data/admin";
@@ -28,7 +28,7 @@ export default async function AdminOverviewPage() {
         title="Overview"
         actions={
           <>
-            <RefreshCacheButton />
+            <PublishSiteButton />
             <Button asChild>
               <Link href="/admin/games/new">
                 <PlusIcon data-icon="inline-start" />

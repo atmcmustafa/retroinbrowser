@@ -1,0 +1,53 @@
+# Builds the static site and deploys it to Cloudflare Workers (OpenNext). The live site only
+# changes here: on every push to main, daily after the link check, and from the admin's
+# Publish site button. Then tells IndexNow what changed.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Check links"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SITE_DEPLOY: production
+      NEXT_PUBLIC_SITE_URL: https://retroinbrowser.com
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Game pages link their share image, so draw any that changed before building.
+      - run: npm run og
+      - run: npx opennextjs-cloudflare build
+      # The Worker reads these at runtime; NEXT_PUBLIC_* values are already in the bundle.
+      - name: Deploy
+        run: |
+          node -e 'const { SUPABASE_SECRET_KEY, TURNSTILE_SECRET_KEY } = process.env;
+            require("fs").writeFileSync("worker-secrets.json",
+              JSON.stringify({ SUPABASE_SECRET_KEY, TURNSTILE_SECRET_KEY }))'
+          npx opennextjs-cloudflare deploy -- --secrets-file worker-secrets.json
+          rm worker-secrets.json
+      - if: ${{ !cancelled() }}
+        run: npm run indexnow -- --changed

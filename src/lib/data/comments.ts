@@ -1,5 +1,4 @@
 import "server-only";
-import { cacheLife, cacheTag } from "next/cache";
 import { commentTagKeys, type CommentTag } from "@/lib/comments";
 import { createPublicClient } from "@/lib/supabase/server";
 
@@ -7,17 +6,12 @@ export const COMMENTS_PER_PAGE = 5;
 
 const isTag = (tag: string): tag is CommentTag => commentTagKeys.includes(tag as CommentTag);
 
-function cacheComments(gameId: string) {
-  cacheTag("comments", `comments:${gameId}`);
-  cacheLife("hours");
-}
+// Read live by /api/comments rather than cached into the game page: pages are rebuilt only on
+// deploy, and a posted comment has to show up right away.
 
 // The total and the tag summary cover every visible comment, not just the page on screen. Only
 // the tags column comes back, and PostgREST's row cap (1,000) bounds the summary, not the count.
 export async function getCommentStats(gameId: string) {
-  "use cache";
-  cacheComments(gameId);
-
   const { data, count, error } = await createPublicClient()
     .from("comments")
     .select("tags", { count: "exact" })
@@ -36,9 +30,6 @@ export async function getCommentStats(gameId: string) {
 }
 
 export async function getCommentPage(gameId: string, page: number) {
-  "use cache";
-  cacheComments(gameId);
-
   const from = (page - 1) * COMMENTS_PER_PAGE;
   const { data, error } = await createPublicClient()
     .from("comments")

@@ -14,7 +14,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import type { SearchEntry } from "@/lib/data/games";
+import { loadCatalog } from "@/components/site/load-catalog";
+import type { CatalogEntry } from "@/lib/data/games";
 
 const POPULAR_COUNT = 8;
 
@@ -22,7 +23,7 @@ export function SearchPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [entries, setEntries] = useState<SearchEntry[] | null>(null);
+  const [entries, setEntries] = useState<CatalogEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
   const loading = useRef(false);
 
@@ -31,9 +32,8 @@ export function SearchPalette() {
     if (entries || loading.current) return;
     loading.current = true;
     setFailed(false);
-    fetch("/api/search-index")
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((data: SearchEntry[]) => setEntries(data))
+    loadCatalog()
+      .then(setEntries)
       .catch(() => setFailed(true))
       .finally(() => {
         loading.current = false;
@@ -107,7 +107,7 @@ export function SearchPalette() {
                     <CommandItem
                       key={entry.slug}
                       value={entry.slug}
-                      keywords={[entry.title, entry.original_title, entry.platform ?? ""]}
+                      keywords={[entry.title, entry.original_title, entry.platform?.name ?? ""]}
                       onSelect={() => go(`/games/${entry.slug}`)}
                       className="gap-3 py-2"
                     >
@@ -126,7 +126,7 @@ export function SearchPalette() {
                         <span className="block truncate font-semibold">{entry.title}</span>
                         <span className="block truncate text-xs text-muted-foreground">
                           {entry.original_title}
-                          {entry.platform && ` · ${entry.platform}`}
+                          {entry.platform && ` · ${entry.platform.name}`}
                         </span>
                       </span>
                     </CommandItem>

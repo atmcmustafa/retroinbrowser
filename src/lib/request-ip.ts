@@ -1,6 +1,11 @@
 import "server-only";
 
-// Vercel overwrites x-forwarded-for with the address it saw, so the first entry can't be spoofed there.
+// Cloudflare sets cf-connecting-ip to the address it saw. It appends to x-forwarded-for instead,
+// so that header's first entry is whatever the client sent; it's only the local fallback.
 export function clientIp(headers: Pick<Headers, "get">) {
-  return headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
+  return (
+    headers.get("cf-connecting-ip")?.trim() ||
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    undefined
+  );
 }

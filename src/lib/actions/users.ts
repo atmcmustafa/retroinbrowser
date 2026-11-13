@@ -1,6 +1,6 @@
 "use server";
 
-import { refresh, updateTag } from "next/cache";
+import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { publicName } from "@/lib/public-name";
@@ -69,7 +69,7 @@ export async function renameUser(id: string, username: string): Promise<UserActi
     .from("comments")
     .update({ author_name: publicName(parsed.data.username) })
     .eq("user_id", parsed.data.id);
-  updateTag("comments");
+  refresh();
   if (commentsError) {
     console.error("Renaming a user's comments failed", commentsError);
     return { ok: false, message: "Renamed, but their comments still show the old name." };
@@ -123,7 +123,7 @@ export async function banUser(input: {
       commentsFailed = true;
     }
   }
-  updateTag("comments");
+  refresh();
 
   const { error: authError } = await admin.auth.admin.updateUserById(id, {
     ban_duration: FOREVER,
@@ -184,6 +184,6 @@ export async function deleteUser(id: string): Promise<UserActionResult> {
     console.error("Deleting a user failed", error);
     return { ok: false, message: "Couldn't delete the account. Try again." };
   }
-  updateTag("comments");
+  refresh();
   return { ok: true };
 }

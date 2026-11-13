@@ -6,7 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommentsSection, CommentsSkeleton } from "@/components/site/comments-section";
-import { FavoriteControl, FavoriteControlSkeleton } from "@/components/site/favorite-control";
+import { FavoriteControl } from "@/components/site/favorite-control";
 import { badgesFor } from "@/components/site/game-badges";
 import { GameRow } from "@/components/site/game-row";
 import { InfoBox } from "@/components/site/info-box";
@@ -17,13 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getGameBySlug, getPortGroup, getPublishedSlugs, getSimilarGames } from "@/lib/data/games";
 import { env } from "@/lib/env";
+import { ogImageAlt, ogImageSize, ogImageUrl } from "@/lib/og-image";
 import { originalPlatform } from "@/lib/platform-name";
 import { baseOpenGraph } from "@/lib/site";
 import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export async function generateStaticParams() {
   const slugs = await getPublishedSlugs();
@@ -39,35 +39,31 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const title = `Play ${game.original_title} in your browser: ${game.title}`;
   const description =
     game.summary ?? `Play ${game.original_title} in your browser with ${game.title}.`;
+  const image = { url: ogImageUrl(game), ...ogImageSize, alt: ogImageAlt };
   return {
     title,
     description,
     alternates: { canonical: `/games/${game.slug}` },
-    openGraph: { ...baseOpenGraph, title, description, url: `/games/${game.slug}` },
+    openGraph: {
+      ...baseOpenGraph,
+      title,
+      description,
+      url: `/games/${game.slug}`,
+      images: [image],
+    },
+    twitter: { card: "summary_large_image", images: [image] },
   };
 }
 
-export default function GamePage({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}) {
+export default function GamePage({ params }: { params: Params }) {
   return (
     <Suspense fallback={<GameSkeleton />}>
-      <GameDetail params={params} searchParams={searchParams} />
+      <GameDetail params={params} />
     </Suspense>
   );
 }
 
-async function GameDetail({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}) {
+async function GameDetail({ params }: { params: Params }) {
   const { slug } = await params;
   const game = await getGameBySlug(slug);
   if (!game) notFound();
@@ -210,9 +206,7 @@ async function GameDetail({
                 <ExternalLinkIcon data-icon="inline-end" />
               </a>
             </Button>
-            <Suspense fallback={<FavoriteControlSkeleton />}>
-              <FavoriteControl gameId={game.id} slug={game.slug} />
-            </Suspense>
+            <FavoriteControl gameId={game.id} slug={game.slug} />
             {game.source_url && (
               <Button asChild size="lg" variant="outline">
                 <a href={game.source_url} target="_blank" rel="noopener noreferrer">
@@ -274,8 +268,9 @@ async function GameDetail({
         >
           Comments
         </h2>
+        {/* Reads ?comments in the browser; without its own boundary the whole page would. */}
         <Suspense fallback={<CommentsSkeleton />}>
-          <CommentsSection gameId={game.id} slug={game.slug} searchParams={searchParams} />
+          <CommentsSection gameId={game.id} slug={game.slug} />
         </Suspense>
       </section>
 

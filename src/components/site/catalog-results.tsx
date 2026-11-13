@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { GameGrid } from "@/components/site/game-grid";
 import { Pagination } from "@/components/site/pagination";
-import { CATALOG_PAGE_SIZE, searchCatalog, type CatalogQuery } from "@/lib/data/games";
+import { CATALOG_PAGE_SIZE } from "@/lib/catalog-filter";
+import { searchCatalog, type CatalogQuery } from "@/lib/data/games";
 
 export async function CatalogResults({
   query,
