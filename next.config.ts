@@ -66,6 +66,11 @@ const nextConfig: NextConfig = {
     "/games/*/opengraph-image": ["./assets/fonts/*.ttf"],
   },
   images: {
+    // Each width is its own transformation, and every width lands in each card's srcset; the
+    // defaults (15 widths) made the home page HTML 400 KB. These cover the sizes props in use
+    // (32 px thumbnails to the 1120 px hero) at 1x to 3x.
+    deviceSizes: [640, 828, 1200, 1920],
+    imageSizes: [64, 128, 256, 384],
     // Every optimized image counts against Vercel's monthly quota, so only our own bucket is
     // allowed; a wildcard would let anyone run other images through /_next/image.
     remotePatterns: [

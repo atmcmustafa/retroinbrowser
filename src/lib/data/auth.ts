@@ -4,10 +4,11 @@ import { oauthProviders, type OAuthProvider } from "@/lib/auth-providers";
 import { env } from "@/lib/env";
 
 // The login page offers whichever providers are switched on in Supabase Auth, so turning one
-// on or off there needs no deploy.
+// on or off there needs no deploy; it shows up within a day. A shorter life sets the page's
+// revalidate: with "minutes", every Sign in prefetch rebuilt /login once a minute.
 export async function getEnabledProviders(): Promise<OAuthProvider[]> {
   "use cache";
-  cacheLife("minutes");
+  cacheLife("days");
 
   const res = await fetch(new URL("/auth/v1/settings", env.NEXT_PUBLIC_SUPABASE_URL), {
     headers: { apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },

@@ -9,7 +9,7 @@ const isTag = (tag: string): tag is CommentTag => commentTagKeys.includes(tag as
 
 function cacheComments(gameId: string) {
   cacheTag("comments", `comments:${gameId}`);
-  cacheLife("hours");
+  cacheLife("days");
 }
 
 // The total and the tag summary cover every visible comment, not just the page on screen. Only

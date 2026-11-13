@@ -14,10 +14,12 @@ const detailColumns =
 const portColumns =
   `${cardColumns}, developer, summary, tech, link_status, last_checked_at, updated_at` as const;
 
-// Cards embed platform names and colors, so taxonomy edits must expire these too.
+// Cards embed platform names and colors, so taxonomy edits must expire these too. Every write
+// expires the tags (admin actions, scripts through /api/revalidate), so the lifetime only bounds
+// how stale the click_count order gets; each expiry rebuilds every page that read it.
 function cacheCatalog() {
   cacheTag("games", "taxonomy");
-  cacheLife("hours");
+  cacheLife("days");
 }
 
 // The home rows promote games, so they leave out ports that stopped answering. The games stay in
