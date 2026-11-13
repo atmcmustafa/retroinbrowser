@@ -42,12 +42,18 @@ jobs:
       - run: npm run og
       - run: npx opennextjs-cloudflare build
       # The Worker reads these at runtime; NEXT_PUBLIC_* values are already in the bundle.
+      # Cloudflare's API sometimes fails a version upload (code 10013) that works when sent again.
       - name: Deploy
         run: |
           node -e 'const { SUPABASE_SECRET_KEY, TURNSTILE_SECRET_KEY } = process.env;
             require("fs").writeFileSync("worker-secrets.json",
               JSON.stringify({ SUPABASE_SECRET_KEY, TURNSTILE_SECRET_KEY }))'
-          npx opennextjs-cloudflare deploy -- --secrets-file worker-secrets.json
-          rm worker-secrets.json
+          trap 'rm -f worker-secrets.json' EXIT
+          for attempt in 1 2 3; do
+            npx opennextjs-cloudflare deploy -- --secrets-file worker-secrets.json && exit 0
+            echo "::warning::Deploy attempt $attempt failed"
+            [ "$attempt" -lt 3 ] && sleep 30
+          done
+          exit 1
       - if: ${{ !cancelled() }}
         run: npm run indexnow -- --changed
