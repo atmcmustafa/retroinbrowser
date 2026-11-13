@@ -20,6 +20,7 @@
     "check-links": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/check-links.ts",
     "smoke": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/smoke.ts",
     "indexnow": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/indexnow.ts",
+    "og": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/og.ts",
     "test:scripts": "tsx --test \"scripts/**/*.test.ts\" \"src/**/*.test.ts\""
   },
   "dependencies": {

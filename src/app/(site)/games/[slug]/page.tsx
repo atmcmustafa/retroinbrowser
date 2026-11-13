@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getGameBySlug, getPortGroup, getPublishedSlugs, getSimilarGames } from "@/lib/data/games";
 import { env } from "@/lib/env";
+import { ogImageAlt, ogImageSize, ogImageUrl } from "@/lib/og-image";
 import { originalPlatform } from "@/lib/platform-name";
 import { baseOpenGraph } from "@/lib/site";
 import { slugify } from "@/lib/slug";
@@ -38,11 +39,19 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const title = `Play ${game.original_title} in your browser: ${game.title}`;
   const description =
     game.summary ?? `Play ${game.original_title} in your browser with ${game.title}.`;
+  const image = { url: ogImageUrl(game), ...ogImageSize, alt: ogImageAlt };
   return {
     title,
     description,
     alternates: { canonical: `/games/${game.slug}` },
-    openGraph: { ...baseOpenGraph, title, description, url: `/games/${game.slug}` },
+    openGraph: {
+      ...baseOpenGraph,
+      title,
+      description,
+      url: `/games/${game.slug}`,
+      images: [image],
+    },
+    twitter: { card: "summary_large_image", images: [image] },
   };
 }
 

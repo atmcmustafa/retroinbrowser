@@ -62,11 +62,6 @@ const nextConfig: NextConfig = {
   // since the last build serves the generic shell, with streamed metadata, until its first visit.
   htmlLimitedBots:
     /facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|vkShare|redditbot|quora link preview|bitlybot|tumblr/i,
-  // OG images read these with fs at runtime; make sure Vercel ships them with those routes.
-  outputFileTracingIncludes: {
-    "/opengraph-image": ["./assets/fonts/*.ttf"],
-    "/games/*/opengraph-image": ["./assets/fonts/*.ttf"],
-  },
   images: {
     // Each width is its own transformation, and every width lands in each card's srcset; the
     // defaults (15 widths) made the home page HTML 400 KB. These cover the sizes props in use
