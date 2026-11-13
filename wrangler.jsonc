@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "retroinbrowser",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "retroinbrowser" }],
+  // Custom domains create their DNS records; the old records (Vercel's) must be deleted first.
+  // www only redirects to the apex (next.config.ts redirects).
+  "routes": [
+    { "pattern": "retroinbrowser.com", "custom_domain": true },
+    { "pattern": "www.retroinbrowser.com", "custom_domain": true },
+  ],
+  "observability": { "enabled": true },
+  // Runtime secrets (wrangler secret put): SUPABASE_SECRET_KEY, TURNSTILE_SECRET_KEY.
+  // NEXT_PUBLIC_* values are built into the bundle from the deploy workflow's env.
+}

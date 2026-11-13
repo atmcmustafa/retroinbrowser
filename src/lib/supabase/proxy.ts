@@ -4,7 +4,16 @@ import { SESSION_HINT, sessionHintMaxAge } from "@/lib/session-hint";
 import { authCookieOptions } from "@/lib/supabase/cookie-options";
 import type { Database } from "@/types/database";
 
+const localHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
 export async function updateSession(request: NextRequest) {
+  // The admin runs on the owner's machine (npm run dev against the live database). Its pages
+  // render per request, which the free Workers plan can't afford, so the live site has none;
+  // requireAdmin() still guards every page and action wherever they run.
+  if (request.nextUrl.pathname.startsWith("/admin") && !localHosts.has(request.nextUrl.hostname)) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(

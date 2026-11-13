@@ -48,3 +48,8 @@ next-env.d.ts
 /CLAUDE.md
 /AGENTS.md
 /docs/
+
+# cloudflare (opennext, wrangler)
+/.open-next/
+/.wrangler/
+.dev.vars*

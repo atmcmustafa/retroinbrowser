@@ -5,7 +5,7 @@ import type { Artwork, ArtworkGame } from "@/lib/images";
 import { getSteamGridArtwork, searchSteamGridGames } from "@/lib/steamgriddb";
 import { importArtwork, removeArtwork } from "@/lib/storage";
 import { createScriptClient } from "./lib/db";
-import { revalidateSite } from "./lib/revalidate";
+import { requestDeploy } from "@/lib/deploy";
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
@@ -108,7 +108,10 @@ async function main() {
   }
 
   if (dryRun) console.log("\nDry run: nothing was uploaded or saved.");
-  if (publishedChanged) await revalidateSite();
+  if (publishedChanged) {
+    const deploy = await requestDeploy();
+    console.log(deploy.ok ? "Deploy started; the site updates in a few minutes." : deploy.message);
+  }
   if (failures) process.exitCode = 1;
 }
 

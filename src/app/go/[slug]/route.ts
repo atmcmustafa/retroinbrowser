@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 import { isIPv6 } from "node:net";
 import { notFound } from "next/navigation";
 import { after, NextResponse, type NextRequest } from "next/server";
-import { getGameBySlug } from "@/lib/data/games";
+import { getPlayTarget } from "@/lib/data/games";
 import { serverEnv } from "@/lib/env.server";
 import { clientIp } from "@/lib/request-ip";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
@@ -36,7 +36,7 @@ function visitorKey(ip: string | undefined) {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const game = await getGameBySlug(slug);
+  const game = await getPlayTarget(slug);
   if (!game) notFound();
 
   if (!botAgent.test(request.headers.get("user-agent") ?? "")) {

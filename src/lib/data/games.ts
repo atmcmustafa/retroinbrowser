@@ -15,12 +15,12 @@ const detailColumns =
 const portColumns =
   `${cardColumns}, developer, summary, tech, link_status, last_checked_at, updated_at` as const;
 
-// Cards embed platform names and colors, so taxonomy edits must expire these too. Every write
-// expires the tags (admin actions, scripts through /api/revalidate), so the lifetime only bounds
-// how stale the click_count order gets; each expiry rebuilds every page that read it.
+// Cards embed platform names and colors, so taxonomy edits must expire these too. The live site
+// is rebuilt by each deploy (daily, and on Publish site in the admin) and never regenerates a
+// page at runtime: on Cloudflare's free plan a render takes more CPU than a request may use.
 function cacheCatalog() {
   cacheTag("games", "taxonomy");
-  cacheLife("days");
+  cacheLife("max");
 }
 
 // The home rows promote games, so they leave out ports that stopped answering. The games stay in
@@ -156,6 +156,19 @@ export async function getGameBySlug(slug: string) {
 }
 
 export type GameDetail = NonNullable<Awaited<ReturnType<typeof getGameBySlug>>>;
+
+// /go runs on every Play click. Uncached on purpose: the live site's cache is the read-only
+// build output, which holds pages, not "use cache" entries.
+export async function getPlayTarget(slug: string) {
+  const { data, error } = await createPublicClient()
+    .from("games")
+    .select("id, play_url")
+    .eq("status", "published")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
 
 // A game with more than one port gets a comparison page, named after the original game.
 export async function getPortGroups() {

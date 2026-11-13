@@ -5,7 +5,7 @@ import { createPublicClient } from "@/lib/supabase/server";
 export async function getPlatforms() {
   "use cache";
   cacheTag("taxonomy");
-  cacheLife("days");
+  cacheLife("max");
 
   const { data, error } = await createPublicClient()
     .from("platforms")
@@ -18,7 +18,7 @@ export async function getPlatforms() {
 export async function getGenres() {
   "use cache";
   cacheTag("taxonomy");
-  cacheLife("days");
+  cacheLife("max");
 
   const { data, error } = await createPublicClient()
     .from("genres")

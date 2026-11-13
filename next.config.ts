@@ -9,7 +9,8 @@ const supabase = new URL(supabaseUrl);
 
 // Local values (localhost, Cloudflare's Turnstile test keys) build fine but send sign-ins back to
 // localhost and let every bot through /submit, so a production deploy with them must not build.
-if (process.env.VERCEL_ENV === "production") {
+// The deploy workflow sets SITE_DEPLOY.
+if (process.env.SITE_DEPLOY === "production") {
   const testKey = /^[123]x0+[A-F]{2}$/;
   const problems = [
     !process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") && "NEXT_PUBLIC_SITE_URL isn't https",
@@ -56,42 +57,40 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
-  // A matching user agent skips the static shell and gets a full render on every request, so
-  // search crawlers are left out: every public route's metadata is static (paged lists use
-  // /page/N), so the shell's <head> already has it. Link previews stay, because a game published
-  // since the last build serves the generic shell, with streamed metadata, until its first visit.
-  htmlLimitedBots:
-    /facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|vkShare|redditbot|quora link preview|bitlybot|tumblr/i,
+  // A matching user agent skips the static page and gets a full render on every request, more
+  // CPU than a free Workers request allows. Every public page is built on deploy with its
+  // metadata in <head>, so no crawler or link preview needs one; this pattern matches no one.
+  htmlLimitedBots: /^RetroInBrowser-no-blocking-render$/,
   images: {
     // Each width is its own transformation, and every width lands in each card's srcset; the
     // defaults (15 widths) made the home page HTML 400 KB. These cover the sizes props in use
     // (32 px thumbnails to the 1120 px hero) at 1x to 3x.
     deviceSizes: [640, 828, 1200, 1920],
     imageSizes: [64, 128, 256, 384],
-    // Every optimized image counts against Vercel's monthly quota, so only our own bucket is
-    // allowed; a wildcard would let anyone run other images through /_next/image.
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: supabase.hostname,
-        port: "",
-        pathname: "/storage/v1/object/public/covers/**",
-        search: "",
-      },
-    ],
+    // Resized by Cloudflare at the edge (src/lib/image-loader.ts). Only the Supabase host is an
+    // allowed source in the zone's settings, so nobody else's images go through our quota.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
   },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
-  // Paged lists moved from ?page=N to /page/N; the old links may already be indexed.
   async redirects() {
+    // Paged lists moved from ?page=N to /page/N; the old links may already be indexed.
     const page = { type: "query" as const, key: "page", value: "(?<page>[2-9]|[1-9]\\d+)" };
-    return ["/popular", "/new", "/genres/:slug", "/platforms/:slug"].map((source) => ({
+    const pages = ["/popular", "/new", "/genres/:slug", "/platforms/:slug"].map((source) => ({
       source,
       has: [page],
       destination: `${source}/page/:page`,
       permanent: true,
     }));
+    const www = {
+      source: "/:path*",
+      has: [{ type: "host" as const, value: "www.retroinbrowser.com" }],
+      destination: "https://retroinbrowser.com/:path*",
+      permanent: true,
+    };
+    return [www, ...pages];
   },
   turbopack: {
     rules: {
